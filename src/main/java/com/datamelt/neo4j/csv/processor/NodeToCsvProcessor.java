@@ -1,9 +1,10 @@
-package com.datamelt.neo4j.csv;
+package com.datamelt.neo4j.csv.processor;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
+import com.datamelt.neo4j.csv.NodesCollector;
 import com.datamelt.util.MessageUtility;
 
 public class NodeToCsvProcessor
