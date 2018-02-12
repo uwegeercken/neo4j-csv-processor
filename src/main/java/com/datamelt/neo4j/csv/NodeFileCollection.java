@@ -28,7 +28,7 @@ public class NodeFileCollection
 		for(int i=0;i<nodes.size();i++)
 		{
 			Node node = nodes.getNode(i);
-			String idFieldName = node.getIdFieldName();
+			String idFieldName = node.getIdFieldKey();
 			Attribute attribute = node.getAttributeByValue(idFieldName);
 
 			NodeFile file = new NodeFile(node.getLabel(),attribute.getKey(),node.getAttributeKeys());

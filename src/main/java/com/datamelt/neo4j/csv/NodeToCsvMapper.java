@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import com.datamelt.util.MessageUtility;
+
 public class NodeToCsvMapper
 {
 	public static HashMap<String,Integer> nodeAttributesToCsvPositions(NodesCollection nodes,CsvHeader header)
@@ -26,7 +28,7 @@ public class NodeToCsvMapper
 		}
 	    if(missingFields.size()>0)
 	    {
-	    	System.out.println("column not found in CSV file header: " + missingFields.toString());
+	    	System.out.println(MessageUtility.getFormattedMessage("column not found in CSV file header: " + missingFields.toString()));
 	    }
 	    return attributePositions;
 	}

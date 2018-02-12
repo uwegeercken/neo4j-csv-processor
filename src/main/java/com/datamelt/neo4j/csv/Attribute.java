@@ -51,4 +51,9 @@ public class Attribute
     	}
     	return isMetadataAttribute;
 	}
+	
+	public boolean equals(Attribute attribute)
+	{
+		return this.getKey().equals(attribute.getKey());
+	}
 }

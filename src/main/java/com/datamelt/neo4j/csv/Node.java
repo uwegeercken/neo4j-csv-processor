@@ -23,20 +23,29 @@ public class Node
 	{
 		return attributes;
 	}
-	
+
 	public ArrayList<Attribute> getMetadataAttributes()
 	{
 		return metadataAttributes;
 	}
 
-	public Attribute getMetadataAttribute(String attributeKey)
+	public ArrayList<Attribute> getAllAttributes()
+	{
+		ArrayList<Attribute> allAttributes = new ArrayList<>();
+		allAttributes.addAll(metadataAttributes);
+		allAttributes.addAll(attributes);
+		return allAttributes;
+	}
+	
+	public Attribute getMetadataAttributeByKey(String attributeKey)
 	{
 		Attribute attribute = null;
 		for(int i=0;i< metadataAttributes.size();i++)
 		{
-			if(attribute.getKey().equals(attributeKey))
+			Attribute metadataAttribute = metadataAttributes.get(i);
+			if(metadataAttribute.getKey().equals(attributeKey))
 			{
-				attribute = metadataAttributes.get(i);
+				attribute = metadataAttribute;
 			}
 		}
 		return attribute;
@@ -53,17 +62,23 @@ public class Node
 		return attributeKeys;
 	}
 
+	public Attribute getKeyAttribute()
+	{
+		String idFieldKey = getIdFieldKey();
+		return getAttributeByKey(idFieldKey);
+	}
+	
 	/**
 	 * returns the name of the field which is the key for
 	 * the relevant node
 	 * 
 	 */
-	public String getIdFieldName()
+	public String getIdFieldKey()
 	{
 		int found =-1;
-		for(int i=0;i<attributes.size();i++)
+		for(int i=0;i<metadataAttributes.size();i++)
 		{
-			if(attributes.get(i).isIdField())
+			if(metadataAttributes.get(i).isIdField())
 			{
 				found = i;
 				break;
@@ -71,7 +86,7 @@ public class Node
 		}
 		if(found>-1)
 		{
-			return attributes.get(found).getValue();
+			return metadataAttributes.get(found).getValue();
 		}
 		else
 		{

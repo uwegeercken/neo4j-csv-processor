@@ -118,31 +118,31 @@ public class NodesCollector
 	    int numberOfColumns = columns.length;
 	    
 	    HashSet<String> missingFields = new HashSet<>();
-	    
 		for(int i=0;i<nodes.size();i++)
     	{
     		Node node = nodes.getNode(i);
-    		String idValue = null;
     		NodeFile nodeFile = nodeFiles.getNodeFile(node.getLabel());
     		ArrayList<Object> values = new ArrayList<>();
-    		Attribute idAttribute = node.getAttributeByKey(MetadataAttribute.ID_FIELD.key());
+    		Attribute idAttribute = node.getMetadataAttributeByKey(MetadataAttribute.ID_FIELD.key());
+    		String keyValue = null;
     		for(int f=0;f<node.getAttributes().size();f++)
     		{
     			Attribute attribute = node.getAttributes().get(f);
-				if( attributePositions.containsKey(attribute.getValue()))
+				if(attributePositions.containsKey(attribute.getValue()))
 				{
     				int position = attributePositions.get(attribute.getValue());
 	    			if(position < numberOfColumns)
 	    			{
 	    				String value = columns[position];
-		    			if(attribute.getKey().equals(MetadataAttribute.ID_FIELD.key()))
-		    			{
-		        			idValue = value;
-		    			}
-		    			else if(!attribute.getValue().equals(idAttribute.getValue()))
+		    			if(!attribute.getValue().equals(idAttribute.getValue()))
 		    			{
 		    				values.add(value);
 		    			}
+		    			else
+		    			{
+		    				keyValue = value;
+		    			}
+
 	    			}
 	    			else
 	    			{
@@ -150,9 +150,9 @@ public class NodesCollector
 	    			}
 				}
     		}
-    		if(idValue!=null)
+    		if(keyValue!=null)
     		{
-    			nodeFile.addValue(idValue, values);
+    			nodeFile.addValue(keyValue, values);
     		}
     		
     		ArrayList<Relation> startNodeRelations = relations.getRelations(node);
@@ -162,19 +162,19 @@ public class NodesCollector
     			Node endNode = relation.getEndNode();
     			RelationFile relationFile = relationFiles.get(node, endNode, relation.getRelationType());
     			
-    			String endNodeIdFieldName = endNode.getIdFieldName();
-    			if(attributePositions.containsKey(endNodeIdFieldName))
+    			String endNodeIdFieldKey = endNode.getIdFieldKey();
+    			if(attributePositions.containsKey(endNodeIdFieldKey))
 				{
-    				int position = attributePositions.get(endNodeIdFieldName);
+    				int position = attributePositions.get(endNodeIdFieldKey);
 	    			if(position < numberOfColumns)
 	    			{
 	    				String endNodeIdFieldValue = columns[position];
-	    				relationFile.addValue(idValue, endNodeIdFieldValue);
+	    				relationFile.addValue(keyValue, endNodeIdFieldValue);
 	    			}
 	    		}
     			else
     			{
-    				missingFields.add(endNodeIdFieldName);
+    				missingFields.add(endNodeIdFieldKey);
     			}
     		}
     	}
@@ -197,15 +197,11 @@ public class NodesCollector
 	private void collectAttributeValues(Node node)
 	{
 		StringBuffer buffer = new StringBuffer();
-    	for(int f=0;f<node.getAttributes().size();f++)
+    	for(int f=0;f<node.getAllAttributes().size();f++)
     	{
-    		Attribute attribute = node.getAttributes().get(f);
-    		if(attribute.getKey().equals(MetadataAttribute.ID_FIELD.key()))
-    		{
-    			attribute.setIsIdField(true);
-    		}
+    		Attribute attribute = node.getAllAttributes().get(f);
     		buffer.append(NODE_VARIABLE + "." + attribute.getKey());
-    		if(f<node.getAttributes().size()-1)
+    		if(f<node.getAllAttributes().size()-1)
     		{
     			buffer.append(", ");
     		}
@@ -217,11 +213,17 @@ public class NodesCollector
 	    while (result.hasNext())
 	    {
 	    	Record record = result.next();
-	    	for(int j=0;j<node.getAttributes().size();j++)
+	    	for(int j=0;j<node.getAllAttributes().size();j++)
 	    	{
-	    		Attribute attribute = node.getAttributes().get(j);
+	    		Attribute attribute = node.getAllAttributes().get(j);
 	    		attribute.setValue(record.get(NODE_VARIABLE + "." + attribute.getKey()).asString());
+	    		if(attribute.getKey().equals(MetadataAttribute.ID_FIELD.key()))
+	    		{
+	    			attribute.setIsIdField(true);
+	    		}
+
 	    	}
+
 		}
 	}
 	
