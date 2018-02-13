@@ -14,14 +14,16 @@ public class NodeFile
 	
 	private String nodeLabel;
 	private String idFieldName;
-	private ArrayList<String> attributeKeys = new ArrayList<>();
+	private ArrayList<Attribute> metadataAttributes = new ArrayList<Attribute>();
+	private ArrayList<Attribute> attributes = new ArrayList<>();
 	private HashMap<String,ArrayList<Object>> values = new HashMap<>();
 	
-	public NodeFile(String nodeLabel, String idFieldName, ArrayList<String> attributeKeys)
+	public NodeFile(String nodeLabel, String idFieldName, ArrayList<Attribute> attributes,ArrayList<Attribute> metadataAttributes)
 	{
 		this.nodeLabel = nodeLabel;
 		this.idFieldName = idFieldName;
-		this.attributeKeys = attributeKeys;
+		this.attributes = attributes;
+		this.metadataAttributes = metadataAttributes;
 	}
 	
 	public void addValue(String key,ArrayList<Object> values)
@@ -37,13 +39,19 @@ public class NodeFile
 	public String getHeader(String delimiter)
 	{
 		StringBuffer buffer = new StringBuffer();
-		buffer.append(idFieldName).append(ID).append(delimiter);
-		for(int i=0;i<attributeKeys.size();i++)
+		buffer.append(idFieldName).append(ID);
+		buffer.append(delimiter);
+		for(int i=0;i<attributes.size();i++)
 		{
-			String key = attributeKeys.get(i);
-			if(!key.equals(MetadataAttribute.ID_FIELD.key()) &&!key.equals(idFieldName))
+			Attribute attribute = attributes.get(i);
+			String key = attribute.getKey();
+			if(!key.equals(MetadataAttribute.ID_FIELD.key()) && !key.equals(idFieldName))
 			{
 				buffer.append(key);
+				if(attribute.getJavaType()!=null)
+				{
+					buffer.append(":" + attribute.getJavaType());
+				}
 				buffer.append(delimiter);
 			}
 		}
@@ -59,10 +67,5 @@ public class NodeFile
 	public HashMap<String,ArrayList<Object>> getValues()
 	{
 		return values;
-	}
-	
-	public ArrayList<String> getAttributeKeys()
-	{
-		return attributeKeys;
 	}
 }

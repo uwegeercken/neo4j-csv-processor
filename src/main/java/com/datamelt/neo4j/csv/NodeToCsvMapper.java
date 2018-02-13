@@ -8,9 +8,10 @@ import com.datamelt.util.MessageUtility;
 
 public class NodeToCsvMapper
 {
-	public static HashMap<String,Integer> nodeAttributesToCsvPositions(NodesCollection nodes,CsvHeader header)
+	public static HashMap<String,Integer> attributesToCsvPositions(NodesCollection nodes,RelationsCollection relations, CsvHeader header)
 	{
-		ArrayList<Attribute> attributes = nodes.getNodeAttributes();
+		ArrayList<Attribute> attributes = nodes.getAllNodesAttributes();
+		attributes.addAll(relations.getAllRelationsAttributes());
 	    HashMap<String,Integer> attributePositions = new HashMap<>();
 	    HashSet<String> missingFields = new HashSet<>();
 	    for(int f=0;f<attributes.size();f++)

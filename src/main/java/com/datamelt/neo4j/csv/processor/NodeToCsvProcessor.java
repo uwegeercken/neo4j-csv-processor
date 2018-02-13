@@ -14,15 +14,16 @@ public class NodeToCsvProcessor
 		String hostname = "localhost";
 		String username = "neo4j";
 		String password = "fasthans";
-		String outputFolder = "/home/uwe/development/temp/output";
-	    String csvFilename = "/home/uwe/development/temp/neoimport_test.csv";
-	    String delimiter = ",";
+		String outputFolder = "/opt/neo4j-community-3.3.2/import/epx";
+	    String csvFilename = "/opt/neo4j-community-3.3.2/import/epx/epx_201801_neo4j.csv";
+	    String delimiter = ";";
 		
 		System.out.println(MessageUtility.getFormattedMessage("start of processing..."));
 		System.out.println(MessageUtility.getFormattedMessage("writing CSV files to folder: " + outputFolder));
 
-		NodesCollector collector = new NodesCollector(hostname,username,password);
-	    
+		NodesCollector collector = new NodesCollector(hostname,username,password, outputFolder);
+		collector.writeSchemaAsCypherStatement();
+		
 		System.out.println(MessageUtility.getFormattedMessage("number of nodes found: " + collector.getNumberOfNodes()));
 		
 		String line;		
@@ -50,10 +51,10 @@ public class NodeToCsvProcessor
         }
 	    
 	    System.out.println(MessageUtility.getFormattedMessage("writing CSV files for nodes..."));
-	    collector.writeNodeFiles(outputFolder,delimiter);
+	    collector.writeNodeFiles(delimiter);
 	    
 	    System.out.println(MessageUtility.getFormattedMessage("writing CSV files for relations..."));
-	    collector.writeRelationFiles(outputFolder,delimiter);
+	    collector.writeRelationFiles(delimiter);
 	    
 	    System.out.println(MessageUtility.getFormattedMessage("processing complete."));
 	    System.out.println();

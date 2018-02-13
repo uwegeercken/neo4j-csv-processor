@@ -45,6 +45,16 @@ public class RelationsCollection
 		return endNodes;
 	}
 	
+	public ArrayList<Attribute> getAllRelationsAttributes()
+	{
+		ArrayList<Attribute> attributes = new ArrayList<>();
+		for(int i=0;i<relations.size();i++)
+		{
+			Relation relation = relations.get(i);
+			attributes.addAll(relation.getAttributes().getAttributes());
+		}
+		return attributes;
+	}
 	
 	public ArrayList<Relation> getRelations()
 	{

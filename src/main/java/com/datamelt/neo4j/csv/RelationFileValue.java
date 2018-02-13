@@ -1,14 +1,18 @@
 package com.datamelt.neo4j.csv;
 
+import java.util.ArrayList;
+
 public class RelationFileValue
 {
 	private String startNodeValue;
 	private String endNodeValue;
+	ArrayList<Object> attributeValues = new ArrayList<>();
 	
-	public RelationFileValue(String startNodeValue, String endNodeValue)
+	public RelationFileValue(String startNodeValue, String endNodeValue,ArrayList<Object> attributeValues)
 	{
 		this.startNodeValue = startNodeValue;
 		this.endNodeValue = endNodeValue;
+		this.attributeValues = attributeValues;
 	}
 
 	public String getStartNodeValue()
@@ -19,6 +23,11 @@ public class RelationFileValue
 	public String getEndNodeValue()
 	{
 		return endNodeValue;
+	}
+	
+	public ArrayList<Object> getAttributeValues()
+	{
+		return attributeValues;
 	}
 	
 	@Override

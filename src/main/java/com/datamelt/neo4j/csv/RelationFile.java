@@ -14,19 +14,22 @@ public class RelationFile
 	private String relationType;
 	private String startNodeLabel;
 	private String endNodeLabel;
-	
+	private ArrayList<Attribute> metadataAttributes = new ArrayList<Attribute>();
+	private ArrayList<Attribute> attributes = new ArrayList<>();
 	private ArrayList<RelationFileValue> values = new ArrayList<>();
 	
-	public RelationFile(String startNodeLabel, String endNodeLabel, String relationType)
+	public RelationFile(String startNodeLabel, String endNodeLabel, String relationType, ArrayList<Attribute> attributes, ArrayList<Attribute> metadataAttributes)
 	{
 		this.startNodeLabel = startNodeLabel;
 		this.endNodeLabel = endNodeLabel;
 		this.relationType = relationType;
+		this.attributes = attributes;
+		this.metadataAttributes = metadataAttributes;
 	}
 	
-	public void addValue(String startNodeValue, String endNodeValue)
+	public void addValue(String startNodeValue, String endNodeValue,ArrayList<Object> attrbuteValues)
 	{
-		RelationFileValue fileValue = new RelationFileValue(startNodeValue, endNodeValue);
+		RelationFileValue fileValue = new RelationFileValue(startNodeValue, endNodeValue, attrbuteValues);
 		// only add value for the relation if it does not exist already
 		if(!values.contains(fileValue))
 		{
@@ -36,7 +39,22 @@ public class RelationFile
 
 	public String getHeader(String delimiter)
 	{
-		return START_ID +delimiter + END_ID + delimiter + TYPE;
+		StringBuffer buffer = new StringBuffer();
+		buffer.append(START_ID);
+		buffer.append(delimiter);
+		for(int i=0;i<attributes.size();i++)
+		{
+			Attribute attribute = attributes.get(i);
+			String key = attribute.getKey();
+			buffer.append(key);
+			if(attribute.getJavaType()!=null)
+			{
+				buffer.append(":" + attribute.getJavaType());
+			}
+			buffer.append(delimiter);
+		}
+		buffer.append(END_ID + delimiter + TYPE);
+		return buffer.toString();
 	}
 
 	public String getNodeFileName()

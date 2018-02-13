@@ -1,13 +1,12 @@
 package com.datamelt.neo4j.csv;
 
 import java.util.ArrayList;
-import com.datamelt.neo4j.csv.util.MetadataAttribute;
 
 public class Node
 {
 	private String label;
-	private ArrayList<Attribute> metadataAttributes = new ArrayList<Attribute>();
-	private ArrayList<Attribute> attributes = new ArrayList<Attribute>();
+	private Attributes metadataAttributes = new Attributes();
+	private Attributes attributes = new Attributes();
 	
 	public String getLabel()
 	{
@@ -19,12 +18,12 @@ public class Node
 		this.label = label;
 	}
 
-	public ArrayList<Attribute> getAttributes()
+	public Attributes getAttributes()
 	{
 		return attributes;
 	}
 
-	public ArrayList<Attribute> getMetadataAttributes()
+	public Attributes getMetadataAttributes()
 	{
 		return metadataAttributes;
 	}
@@ -32,40 +31,15 @@ public class Node
 	public ArrayList<Attribute> getAllAttributes()
 	{
 		ArrayList<Attribute> allAttributes = new ArrayList<>();
-		allAttributes.addAll(metadataAttributes);
-		allAttributes.addAll(attributes);
+		allAttributes.addAll(metadataAttributes.getAttributes());
+		allAttributes.addAll(attributes.getAttributes());
 		return allAttributes;
 	}
 	
-	public Attribute getMetadataAttributeByKey(String attributeKey)
-	{
-		Attribute attribute = null;
-		for(int i=0;i< metadataAttributes.size();i++)
-		{
-			Attribute metadataAttribute = metadataAttributes.get(i);
-			if(metadataAttribute.getKey().equals(attributeKey))
-			{
-				attribute = metadataAttribute;
-			}
-		}
-		return attribute;
-	}
-	
-	public ArrayList<String> getAttributeKeys()
-	{
-		ArrayList<String> attributeKeys = new ArrayList<>();
-		for(int i=0;i<attributes.size();i++)
-		{
-			Attribute attribute = attributes.get(i);
-			attributeKeys.add(attribute.getKey());
-		}
-		return attributeKeys;
-	}
-
 	public Attribute getKeyAttribute()
 	{
 		String idFieldKey = getIdFieldKey();
-		return getAttributeByKey(idFieldKey);
+		return attributes.getAttributeByKey(idFieldKey);
 	}
 	
 	/**
@@ -76,9 +50,10 @@ public class Node
 	public String getIdFieldKey()
 	{
 		int found =-1;
-		for(int i=0;i<metadataAttributes.size();i++)
+		
+		for(int i=0;i<metadataAttributes.getAttributes().size();i++)
 		{
-			if(metadataAttributes.get(i).isIdField())
+			if(metadataAttributes.getAttributes().get(i).isIdField())
 			{
 				found = i;
 				break;
@@ -86,7 +61,7 @@ public class Node
 		}
 		if(found>-1)
 		{
-			return metadataAttributes.get(found).getValue();
+			return metadataAttributes.getAttributes().get(found).getValue();
 		}
 		else
 		{
@@ -94,40 +69,37 @@ public class Node
 		}
 	}
 	
-	public Attribute getAttributeByKey(String key)
+	public String getNodeCreateStatement(String nodeVariable, String csvDefinitionLabel)
 	{
-		Attribute attribute = null;
-		for(int i=0;i<attributes.size();i++)
+		ArrayList<Attribute> allAttributes = getAllAttributes();
+		String createStatement="create (" + nodeVariable + ":" + getLabel() + ":" + csvDefinitionLabel + " {";
+		StringBuffer attributesBuffer = new StringBuffer();
+		for(int i=0;i<allAttributes.size();i++)
 		{
-			if(attributes.get(i).getKey().equals(key))
+			Attribute attribute = allAttributes.get(i);
+			attributesBuffer.append(attribute.getKey() + ":" + "\"" + attribute.getValue());
+			if(attribute.getJavaType()!=null)
 			{
-				attribute = attributes.get(i);
+				attributesBuffer.append(":" +attribute.getJavaType());
+			}
+			attributesBuffer.append("\"");
+			if(i<allAttributes.size()-1)
+			{
+				attributesBuffer.append(", ");
 			}
 		}
-		return attribute;
-	}
-	
-	public Attribute getAttributeByValue(String value)
-	{
-		Attribute attribute = null;
-		for(int i=0;i<attributes.size();i++)
-		{
-			if(!attributes.get(i).getKey().equals(MetadataAttribute.ID_FIELD.key()) &&attributes.get(i).getValue().equals(value))
-			{
-				attribute = attributes.get(i);
-			}
-		}
-		return attribute;
+		String completeStatement = createStatement + attributesBuffer.toString() + "});";
+		return completeStatement;
 	}
 	
 	public void addAttribute(Attribute attribute)
 	{
-		attributes.add(attribute);
+		attributes.getAttributes().add(attribute);
 	}
 
 	public void addMetadataAttribute(Attribute attribute)
 	{
-		metadataAttributes.add(attribute);
+		metadataAttributes.getAttributes().add(attribute);
 	}
 
 	public boolean equals(Node node)

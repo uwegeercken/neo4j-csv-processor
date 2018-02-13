@@ -64,13 +64,13 @@ public class NodesCollection
 		return labels;
 	}
 	
-	public ArrayList<Attribute> getNodeAttributes()
+	public ArrayList<Attribute> getAllNodesAttributes()
 	{
 		ArrayList<Attribute> attributes = new ArrayList<>();
 		for(int i=0;i<nodes.size();i++)
 		{
 			Node node = nodes.get(i);
-			attributes.addAll(node.getAttributes());
+			attributes.addAll(node.getAttributes().getAttributes());
 		}
 		return attributes;
 	}

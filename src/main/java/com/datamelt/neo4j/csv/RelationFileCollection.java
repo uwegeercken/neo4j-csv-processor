@@ -48,7 +48,7 @@ public class RelationFileCollection
 		for(int i=0;i<relations.size();i++)
 		{
 			Relation relation = relations.getRelation(i);
-			RelationFile file = new RelationFile(relation.getStartNode().getLabel(),relation.getEndNode().getLabel(),relation.getRelationType());
+			RelationFile file = new RelationFile(relation.getStartNode().getLabel(),relation.getEndNode().getLabel(),relation.getRelationType(),relation.getAttributes().getAttributes(),relation.getMetadataAttributes().getAttributes());
 			relationFiles.add(file);
 		}
 	}
@@ -78,8 +78,17 @@ public class RelationFileCollection
 	        	StringBuffer buffer = new StringBuffer();
 	        	RelationFileValue value = values.get(j);
 	        	buffer.append(value.getStartNodeValue())
-	        		.append(delimiter)
-	        		.append(value.getEndNodeValue())
+	        		.append(delimiter);
+	        		
+	        		ArrayList<Object> attributeValues = value.getAttributeValues();
+	    	        for (int k=0;k<attributeValues.size();k++) 
+	    	        {
+	    	        	String attributeValue = attributeValues.get(k).toString();
+    	            	buffer.append(attributeValue);
+                		buffer.append(delimiter);
+	    	        }	
+	        	
+	    	        buffer.append(value.getEndNodeValue())
 	        		.append(delimiter)
 	        		.append(relationFile.getRelationType());
 	        	printWriter.println(buffer.toString());

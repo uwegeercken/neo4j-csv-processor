@@ -7,6 +7,7 @@ public class Attribute
 	private String key;
 	private String value;
 	private boolean isIdField=false;
+	private String javaType;
 	
 	public String getKey()
 	{
@@ -55,5 +56,15 @@ public class Attribute
 	public boolean equals(Attribute attribute)
 	{
 		return this.getKey().equals(attribute.getKey());
+	}
+
+	public String getJavaType()
+	{
+		return javaType;
+	}
+
+	public void setJavaType(String javaType)
+	{
+		this.javaType = javaType;
 	}
 }
