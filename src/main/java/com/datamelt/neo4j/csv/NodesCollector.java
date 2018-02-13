@@ -106,6 +106,11 @@ public class NodesCollector
 		return nodes.size();
 	}
 	
+	public int getNumberOfRelations()
+	{
+		return relations.size();
+	}
+	
 	public void setCsvHeader(String line, String delimiter)
 	{
 		header = new CsvHeader(line, delimiter);

@@ -20,6 +20,7 @@
 package com.datamelt.neo4j.csv.processor;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Calendar;
@@ -98,8 +99,6 @@ public class NodeToCsvProcessor
 	    		throw new Exception("folder and name of the CSV file must be specified");
 	    	}
     	
-        	
-    		// capture start time
 	    	Calendar start = Calendar.getInstance();
 
         	System.out.println(MessageUtility.getFormattedMessage("start of processing..."));
@@ -109,9 +108,11 @@ public class NodeToCsvProcessor
     		collector.writeSchemaAsCypherStatement();
     		
     		System.out.println(MessageUtility.getFormattedMessage("number of nodes found: " + collector.getNumberOfNodes()));
+    		System.out.println(MessageUtility.getFormattedMessage("number of relations found: " + collector.getNumberOfRelations()));
     		
     		String line;		
-    	    try(BufferedReader br = new BufferedReader(new FileReader(csvFilename)))
+    	    File csvFile = new File(csvFilename);
+    		try(BufferedReader br = new BufferedReader(new FileReader(csvFile)))
     	    {
     	    	long lineCounter = 0;
     	    	
@@ -123,11 +124,23 @@ public class NodeToCsvProcessor
     		    }
     		
     		    System.out.println(MessageUtility.getFormattedMessage("processing CSV file: " + csvFilename));
-    	    	while ((line = br.readLine()) != null && !line.trim().equals("") && !line.startsWith("#")) 
+    		    long filesize =csvFile.length();
+    		    double bytesProcessed=headerLine.length();
+    		    double percentage = 0;
+    		    long percentageLimit=10;
+    		    while ((line = br.readLine()) != null && !line.trim().equals("") && !line.startsWith("#")) 
     	        {
-    	    		lineCounter++;
+    		    	lineCounter++;
+    		    	bytesProcessed = bytesProcessed + line.length();
+    		    	percentage = bytesProcessed/filesize * 100;
+    		    	if(percentage>= percentageLimit)
+    		    	{
+    		    		percentageLimit = percentageLimit + 10;
+    		    		System.out.println(MessageUtility.getFormattedMessage("percent complete: " + (long)percentage) + " - rows: " + lineCounter);
+    		    	}
     	    		collector.processLine(line,lineCounter,delimiter);
     	        }
+    		    System.out.println(MessageUtility.getFormattedMessage("processed rows: " + lineCounter));
     	    }
     	    catch (IOException e)
     	    {
