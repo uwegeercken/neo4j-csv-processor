@@ -26,7 +26,7 @@ public class NodesCollector
 	private static final String NODE_START	 						= "startnode";
 	private static final String NODE_END 							= "endnode";
 	
-	private static final String DEFAULT_PROTOCOL 					= "bolt";
+	public static final String DEFAULT_PROTOCOL 					= "bolt";
 	private static final String DEFAULT_ORIGINAL_SCHEMA_FILENAME 	= "original_schema.cyp"; 
 	
 	private static final String STATEMENT_DEFINITION_NODES = "MATCH (a :"+ DEFINITION_LABEL + ") RETURN labels(a) as " + LABELS_LABEL + ", keys(a) as " + KEYS_LABEL;

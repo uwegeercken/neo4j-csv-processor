@@ -25,6 +25,11 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.Calendar;
 
+import org.neo4j.driver.v1.AuthTokens;
+import org.neo4j.driver.v1.Driver;
+import org.neo4j.driver.v1.GraphDatabase;
+import org.neo4j.driver.v1.Session;
+
 import com.datamelt.neo4j.csv.NodesCollector;
 import com.datamelt.util.MessageUtility;
 
@@ -96,17 +101,20 @@ public class NodeToCsvProcessor
 	    	}
     		if(csvFilename==null || csvFilename.trim().equals(""))
 	    	{
-	    		throw new Exception("folder and name of the CSV file must be specified");
+	    		throw new Exception("name of the CSV file (including path) must be specified");
 	    	}
     		else
     		{
-    			File csvFile = new File(csvFilename);
-    			if(!csvFile.exists() || !csvFile.isFile() || !csvFile.canRead())
+    			boolean csvFileOk = checkCsvFileAccessible(csvFilename);
+    			if(!csvFileOk)
     			{
     				throw new Exception("CSV file is not existing or can not be read");
     			}
     		}
-    	
+    		if(!checkDatabaseAccess())
+    		{
+    			throw new Exception("can not access neo4j host. check if the host is available and credentials are correct.");
+    		}
 	    	Calendar start = Calendar.getInstance();
 
         	System.out.println(MessageUtility.getFormattedMessage("start of processing..."));
@@ -169,6 +177,35 @@ public class NodeToCsvProcessor
     	    System.out.println(MessageUtility.getFormattedMessage("end of process."));
     	    System.out.println();
         }
+	}
+	
+	private static boolean checkDatabaseAccess()
+	{
+		boolean accessOk = false;
+		try
+		{
+			Driver driver = GraphDatabase.driver(NodesCollector.DEFAULT_PROTOCOL +"://" + hostname, AuthTokens.basic(username,password));
+			Session session = driver.session();
+			session.close();
+			accessOk = true;
+		}
+		catch(Exception ex)
+		{
+			ex.printStackTrace();
+		}
+		return accessOk;
+
+	}
+	
+	private static boolean checkCsvFileAccessible(String filename)
+	{
+		boolean fileOk = false;
+		File csvFile = new File(filename);
+		if(csvFile.exists() && csvFile.isFile() && csvFile.canRead())
+		{
+			fileOk = true;
+		}	
+		return fileOk;
 	}
 	
 	/** 
