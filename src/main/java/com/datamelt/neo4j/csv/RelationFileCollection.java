@@ -66,7 +66,7 @@ public class RelationFileCollection
 		for(int i=0;i<relationFiles.size();i++)
 	    {
 	    	RelationFile relationFile = relationFiles.get(i);
-	    	String fileName = outputFolder + "/" + relationFile.getNodeFileName(); 
+	    	String fileName = outputFolder + "/" + relationFile.getRelationFileName(); 
 	    	System.out.println(MessageUtility.getFormattedMessage("writing file for relation: " + relationFile.getStartNodeLabel() + " to " + relationFile.getEndNodeLabel()));
 	    	FileWriter fileWriter = new FileWriter(fileName);
 	        PrintWriter printWriter = new PrintWriter(fileWriter);

@@ -83,99 +83,112 @@ public class NodeToCsvProcessor
 	    		}
 	    	}
         	
+        	boolean error= false;
+        	
     		if(hostname==null || hostname.trim().equals(""))
 	    	{
-	    		throw new Exception("hostname must be specified");
+	    		System.out.println(" error - hostname must be specified");
+	    		error = true;
 	    	}
     		if(username==null || username.trim().equals(""))
 	    	{
-	    		throw new Exception("username must be specified");
+    			System.out.println(" error - username must be specified");
+    			error = true;
 	    	}
     		if(password==null || password.trim().equals(""))
 	    	{
-	    		throw new Exception("password must be specified");
+    			System.out.println(" error - password must be specified");
+    			error = true;
 	    	}
     		if(outputFolder==null || outputFolder.trim().equals(""))
 	    	{
-	    		throw new Exception("name of the output folder must be specified");
+    			System.out.println(" error - name of the output folder must be specified");
+    			error = true;
 	    	}
     		if(csvFilename==null || csvFilename.trim().equals(""))
 	    	{
-	    		throw new Exception("name of the CSV file (including path) must be specified");
+    			System.out.println(" error - name of the CSV file (including path) must be specified");
+    			error = true;
 	    	}
     		else
     		{
     			boolean csvFileOk = checkCsvFileAccessible(csvFilename);
     			if(!csvFileOk)
     			{
-    				throw new Exception("CSV file is not existing or can not be read");
+    				System.out.println(" error - CSV file is not existing or can not be read");
+    				error = true;
     			}
     		}
     		if(!checkDatabaseAccess())
     		{
-    			throw new Exception("can not access neo4j host. check if the host is available and credentials are correct.");
+    			System.out.println(" error - can not access neo4j host. check if the host is available and credentials are correct.");
+    			error = true;
     		}
-	    	Calendar start = Calendar.getInstance();
-
-        	System.out.println(MessageUtility.getFormattedMessage("start of processing..."));
-    		System.out.println(MessageUtility.getFormattedMessage("writing CSV files to folder: " + outputFolder));
-
-    		NodesCollector collector = new NodesCollector(hostname,username,password, outputFolder);
-    		collector.writeSchemaAsCypherStatement();
     		
-    		System.out.println(MessageUtility.getFormattedMessage("number of nodes found: " + collector.getNumberOfNodes()));
-    		System.out.println(MessageUtility.getFormattedMessage("number of relations found: " + collector.getNumberOfRelations()));
-    		
-    		String line;		
-    	    File csvFile = new File(csvFilename);
-    		try(BufferedReader br = new BufferedReader(new FileReader(csvFile)))
-    	    {
-    	    	long lineCounter = 0;
-    	    	
-    	    	String headerLine = br.readLine();
-    		    if(headerLine!=null)
-    		    {
-    		    	lineCounter++;
-    		    	collector.setCsvHeader(headerLine, delimiter);
-    		    }
-    		
-    		    System.out.println(MessageUtility.getFormattedMessage("processing CSV file: " + csvFilename));
-    		    long filesize =csvFile.length();
-    		    double bytesProcessed=headerLine.length();
-    		    double percentage = 0;
-    		    long percentageLimit=10;
-    		    while ((line = br.readLine()) != null && !line.trim().equals("") && !line.startsWith("#")) 
-    	        {
-    		    	lineCounter++;
-    		    	bytesProcessed = bytesProcessed + line.length();
-    		    	percentage = bytesProcessed/filesize * 100;
-    		    	if(percentage>= percentageLimit)
-    		    	{
-    		    		percentageLimit = percentageLimit + 10;
-    		    		System.out.println(MessageUtility.getFormattedMessage("percent complete: " + (long)percentage) + " - rows: " + lineCounter);
-    		    	}
-    	    		collector.processLine(line,lineCounter,delimiter);
-    	        }
-    		    System.out.println(MessageUtility.getFormattedMessage("processed rows: " + lineCounter));
-    	    }
-    	    catch (IOException e)
-    	    {
-                e.printStackTrace();
-            }
-    	    
-    	    System.out.println(MessageUtility.getFormattedMessage("writing CSV files for nodes..."));
-    	    collector.writeNodeFiles(delimiter);
-    	    
-    	    System.out.println(MessageUtility.getFormattedMessage("writing CSV files for relations..."));
-    	    collector.writeRelationFiles(delimiter);
-    	    
-    	    Calendar end = Calendar.getInstance();
-            long elapsed = end.getTimeInMillis() - start.getTimeInMillis();
-            long elapsedSeconds = (elapsed/1000);
-
-    	    System.out.println(MessageUtility.getFormattedMessage("elapsed time: " + elapsedSeconds + " second(s)"));
-    	    System.out.println(MessageUtility.getFormattedMessage("end of process."));
-    	    System.out.println();
+    		if(!error)
+    		{
+		    	Calendar start = Calendar.getInstance();
+	
+	        	System.out.println(MessageUtility.getFormattedMessage("start of processing..."));
+	    		System.out.println(MessageUtility.getFormattedMessage("writing CSV files to folder: " + outputFolder));
+	
+	    		NodesCollector collector = new NodesCollector(hostname,username,password, outputFolder);
+	    		collector.writeSchemaAsCypherStatement();
+	    		
+	    		System.out.println(MessageUtility.getFormattedMessage("number of nodes found: " + collector.getNumberOfNodes()));
+	    		System.out.println(MessageUtility.getFormattedMessage("number of relations found: " + collector.getNumberOfRelations()));
+	    		
+	    		String line;		
+	    	    File csvFile = new File(csvFilename);
+	    		try(BufferedReader br = new BufferedReader(new FileReader(csvFile)))
+	    	    {
+	    	    	long lineCounter = 0;
+	    	    	
+	    	    	String headerLine = br.readLine();
+	    		    if(headerLine!=null)
+	    		    {
+	    		    	lineCounter++;
+	    		    	collector.setCsvHeader(headerLine, delimiter);
+	    		    }
+	    		
+	    		    System.out.println(MessageUtility.getFormattedMessage("processing CSV file: " + csvFilename));
+	    		    long filesize =csvFile.length();
+	    		    double bytesProcessed=headerLine.length();
+	    		    double percentage = 0;
+	    		    long percentageLimit=10;
+	    		    while ((line = br.readLine()) != null && !line.trim().equals("") && !line.startsWith("#")) 
+	    	        {
+	    		    	lineCounter++;
+	    		    	bytesProcessed = bytesProcessed + line.length();
+	    		    	percentage = bytesProcessed/filesize * 100;
+	    		    	if(percentage>= percentageLimit)
+	    		    	{
+	    		    		percentageLimit = percentageLimit + 10;
+	    		    		System.out.println(MessageUtility.getFormattedMessage("percent complete: " + (long)percentage) + " - rows: " + lineCounter);
+	    		    	}
+	    	    		collector.processLine(line,lineCounter,delimiter);
+	    	        }
+	    		    System.out.println(MessageUtility.getFormattedMessage("processed rows: " + lineCounter));
+	    	    }
+	    	    catch (IOException e)
+	    	    {
+	                e.printStackTrace();
+	            }
+	    	    
+	    	    System.out.println(MessageUtility.getFormattedMessage("writing CSV files for nodes..."));
+	    	    collector.writeNodeFiles(delimiter);
+	    	    
+	    	    System.out.println(MessageUtility.getFormattedMessage("writing CSV files for relations..."));
+	    	    collector.writeRelationFiles(delimiter);
+	    	    
+	    	    Calendar end = Calendar.getInstance();
+	            long elapsed = end.getTimeInMillis() - start.getTimeInMillis();
+	            long elapsedSeconds = (elapsed/1000);
+	
+	    	    System.out.println(MessageUtility.getFormattedMessage("elapsed time: " + elapsedSeconds + " second(s)"));
+	    	    System.out.println(MessageUtility.getFormattedMessage("end of process."));
+	    	    System.out.println();
+    		}
         }
 	}
 	

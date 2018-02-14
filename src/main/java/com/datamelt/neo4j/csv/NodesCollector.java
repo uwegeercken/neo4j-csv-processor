@@ -62,7 +62,7 @@ public class NodesCollector
 	
 	private void collectNodes()
 	{
-		System.out.println(MessageUtility.getFormattedMessage("collection information on nodes and attributes..."));
+		System.out.println(MessageUtility.getFormattedMessage("collecting information on nodes and attributes..."));
 		StatementResult result = session.run(STATEMENT_DEFINITION_NODES);
 		
 		while (result.hasNext())
@@ -163,7 +163,6 @@ public class NodesCollector
     			nodeFile.addValue(keyValue, values);
     		}
     		
-    		ArrayList<Object> relationValues = new ArrayList<>();
     		ArrayList<Relation> startNodeRelations = relations.getRelations(node);
     		for(int k=0;k<startNodeRelations.size();k++)
     		{
@@ -186,6 +185,7 @@ public class NodesCollector
     				missingFields.add(endNodeIdFieldKey);
     			}
     			
+    			ArrayList<Object> relationValues = new ArrayList<>();
     			for(int f=0;f<relation.getAttributes().size();f++)
         		{
         			Attribute attribute = relation.getAttributes().getAttribute(f);

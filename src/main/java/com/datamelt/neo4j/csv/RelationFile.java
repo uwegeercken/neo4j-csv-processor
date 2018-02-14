@@ -57,7 +57,7 @@ public class RelationFile
 		return buffer.toString();
 	}
 
-	public String getNodeFileName()
+	public String getRelationFileName()
 	{
 		return CSV_FILE_PREFIX + startNodeLabel + "_" + endNodeLabel + CSV_FILE_EXTENSION;
 	}
