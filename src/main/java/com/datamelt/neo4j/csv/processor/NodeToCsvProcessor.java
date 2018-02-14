@@ -78,26 +78,34 @@ public class NodeToCsvProcessor
 	    		}
 	    	}
         	
-    		if(hostname==null)
+    		if(hostname==null || hostname.trim().equals(""))
 	    	{
 	    		throw new Exception("hostname must be specified");
 	    	}
-    		if(username==null)
+    		if(username==null || username.trim().equals(""))
 	    	{
 	    		throw new Exception("username must be specified");
 	    	}
-    		if(password==null)
+    		if(password==null || password.trim().equals(""))
 	    	{
 	    		throw new Exception("password must be specified");
 	    	}
-    		if(outputFolder==null)
+    		if(outputFolder==null || outputFolder.trim().equals(""))
 	    	{
 	    		throw new Exception("name of the output folder must be specified");
 	    	}
-    		if(csvFilename==null)
+    		if(csvFilename==null || csvFilename.trim().equals(""))
 	    	{
 	    		throw new Exception("folder and name of the CSV file must be specified");
 	    	}
+    		else
+    		{
+    			File csvFile = new File(csvFilename);
+    			if(!csvFile.exists() || !csvFile.isFile() || !csvFile.canRead())
+    			{
+    				throw new Exception("CSV file is not existing or can not be read");
+    			}
+    		}
     	
 	    	Calendar start = Calendar.getInstance();
 
