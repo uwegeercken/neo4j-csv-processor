@@ -155,7 +155,8 @@ public class NodeToCsvProcessor
 	    		    long filesize =csvFile.length();
 	    		    double bytesProcessed=headerLine.length();
 	    		    double percentage = 0;
-	    		    long percentageLimit=10;
+	    		    int percentageIncrement= 10;
+	    		    long percentageLimit=percentageIncrement;
 	    		    while ((line = br.readLine()) != null && !line.trim().equals("") && !line.startsWith("#")) 
 	    	        {
 	    		    	lineCounter++;
@@ -163,7 +164,7 @@ public class NodeToCsvProcessor
 	    		    	percentage = bytesProcessed/filesize * 100;
 	    		    	if(percentage>= percentageLimit)
 	    		    	{
-	    		    		percentageLimit = percentageLimit + 10;
+	    		    		percentageLimit = percentageLimit + percentageIncrement;
 	    		    		System.out.println(MessageUtility.getFormattedMessage("percent complete: " + (long)percentage) + " - rows: " + lineCounter);
 	    		    	}
 	    	    		collector.processLine(line,lineCounter,delimiter);
