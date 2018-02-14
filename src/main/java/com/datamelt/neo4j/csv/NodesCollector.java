@@ -96,7 +96,10 @@ public class NodesCollector
 	        		node.addAttribute(attribute);
 	        	}
 	        }
-	        collectAttributeValues(node);
+	        if(keys.size()>0)
+	        {
+	        	collectAttributeValues(node);
+	        }
 	        nodes.addNode(node);
 	    }
 	}
@@ -353,7 +356,10 @@ public class NodesCollector
 		        	}
 		        }
 		        
-	    		collectAttributeValues(relation);
+		        if(keys.size()>0)
+		        {
+		        	collectAttributeValues(relation);
+		        }
 		    	
 		    	relations.addRelation(relation);
 		    	
