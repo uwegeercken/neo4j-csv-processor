@@ -15,14 +15,14 @@ public class NodeToCsvMapper
 			if(header.getPositions().containsKey(attribute.getValue()))
 			{
 				int position = header.getPositions().get(attribute.getValue());
-   				map.put(position, f);
+   				map.put(f, position);
    				if(attribute.getValue().equals(idFieldKey))
    				{
    					node.setKeyAttributeIndex(position);
    				}
 			}
 		}
-		node.setCsvColumnToAttributesMap(map);
+		node.setAttributesToCsvColumnMap(map);
 	}
 	
 	public static void mapColumnsToAttributes(Relation relation, CsvHeader header)
@@ -34,9 +34,9 @@ public class NodeToCsvMapper
 			if(header.getPositions().containsKey(attribute.getValue()))
 			{
 				int position = header.getPositions().get(attribute.getValue());
-   				map.put(position, f);
+   				map.put(f, position);
 			}
 		}
-		relation.setCsvColumnToAttributesMap(map);
+		relation.setAttributesToCsvColumnMap(map);
 	}
 }

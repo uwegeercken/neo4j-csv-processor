@@ -3,6 +3,7 @@ package com.datamelt.neo4j.csv;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Driver;
@@ -123,13 +124,13 @@ public class NodesCollector
     		Node node = nodes.getNode(i);
     		NodeFile nodeFile = nodeFiles.getNodeFile(node.getLabel());
     		
-    		HashMap<Integer, Integer> nodesMap = node.getCsvColumnToAttributesMap();
+    		HashMap<Integer, Integer> nodesMap = node.getAttributesToCsvColumnMap();
     		ArrayList<String> values = new ArrayList<>(nodesMap.size());
-    		for(int key : nodesMap.keySet())
+    		for(Map.Entry<Integer, Integer>entry : nodesMap.entrySet())
     		{
-    			if(key!= node.getKeyAttributeIndex())
+    			if(entry.getValue()!= node.getKeyAttributeIndex())
     			{
-    				String value = columns.get(key);
+    				String value = columns.get(entry.getValue());
     				values.add(value);
     			}
     		}
@@ -142,11 +143,11 @@ public class NodesCollector
     			Node endNode = relation.getEndNode();
     			RelationFile relationFile = relationFiles.get(node, endNode, relation.getRelationType());
     			
-    			HashMap<Integer, Integer> relationsMap = relation.getCsvColumnToAttributesMap();
+    			HashMap<Integer, Integer> relationsMap = relation.getAttributesToCsvColumnMap();
     			ArrayList<String> relationValues = new ArrayList<>(relationsMap.size());
-    			for(int key : relationsMap.keySet())
+    			for(Map.Entry<Integer, Integer>entry : relationsMap.entrySet())
         		{
-        			String value = columns.get(key);
+        			String value = columns.get(entry.getValue());
         			relationValues.add(value);
         		}
    			

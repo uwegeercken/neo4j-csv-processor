@@ -9,7 +9,7 @@ public class Node
 	private int keyAttributeIndex;
 	private Attributes metadataAttributes = new Attributes();
 	private Attributes attributes = new Attributes();
-	private HashMap<Integer,Integer> csvColumnToAttributesMap = new HashMap<>();
+	private HashMap<Integer,Integer> attributesToCsvColumnMap = new HashMap<>();
 	
 	public String getLabel()
 	{
@@ -109,14 +109,14 @@ public class Node
 		return this.getLabel().equals(node.getLabel());
 	}
 
-	public HashMap<Integer, Integer> getCsvColumnToAttributesMap()
+	public HashMap<Integer, Integer> getAttributesToCsvColumnMap()
 	{
-		return csvColumnToAttributesMap;
+		return attributesToCsvColumnMap;
 	}
 
-	public void setCsvColumnToAttributesMap(HashMap<Integer, Integer> csvColumnToAttributesMap)
+	public void setAttributesToCsvColumnMap(HashMap<Integer, Integer> attributesToCsvColumnMap)
 	{
-		this.csvColumnToAttributesMap = csvColumnToAttributesMap;
+		this.attributesToCsvColumnMap = attributesToCsvColumnMap;
 	}
 
 	public int getKeyAttributeIndex()
