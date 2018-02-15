@@ -127,8 +127,11 @@ public class NodesCollector
     		ArrayList<String> values = new ArrayList<>(nodesMap.size());
     		for(int key : nodesMap.keySet())
     		{
-    			String value = columns.get(key);
-    			values.add(value);
+    			if(key!= node.getKeyAttributeIndex())
+    			{
+    				String value = columns.get(key);
+    				values.add(value);
+    			}
     		}
    			nodeFile.addValue(columns.get(node.getKeyAttributeIndex()), values);
    			
