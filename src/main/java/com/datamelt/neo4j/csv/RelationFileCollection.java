@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.datamelt.util.MessageUtility;
 
@@ -72,25 +73,23 @@ public class RelationFileCollection
 	        PrintWriter printWriter = new PrintWriter(fileWriter);
 	        printWriter.println(relationFile.getHeader(delimiter));
 
-	        ArrayList<RelationFileValue> values = relationFile.getValues();
-	        for (int j=0;j<values.size();j++) 
+	        HashMap<String,RelationFileValue> values = relationFile.getValues();
+	        for (RelationFileValue value : values.values()) 
 	        {
 	        	StringBuffer buffer = new StringBuffer();
-	        	RelationFileValue value = values.get(j);
-	        	buffer.append(value.getStartNodeValue())
-	        		.append(delimiter);
+	        	buffer.append(value.getStartNodeValue()).append(delimiter);
 	        		
-	        		ArrayList<Object> attributeValues = value.getAttributeValues();
-	    	        for (int k=0;k<attributeValues.size();k++) 
-	    	        {
-	    	        	String attributeValue = attributeValues.get(k).toString();
-    	            	buffer.append(attributeValue);
-                		buffer.append(delimiter);
-	    	        }	
-	        	
-	    	        buffer.append(value.getEndNodeValue())
-	        		.append(delimiter)
-	        		.append(relationFile.getRelationType());
+        		ArrayList<String> attributeValues = value.getAttributeValues();
+    	        for (int k=0;k<attributeValues.size();k++) 
+    	        {
+    	        	String attributeValue = attributeValues.get(k).toString();
+	            	buffer.append(attributeValue);
+            		buffer.append(delimiter);
+    	        }	
+        	
+    	        buffer.append(value.getEndNodeValue())
+        			.append(delimiter)
+        			.append(relationFile.getRelationType());
 	        	printWriter.println(buffer.toString());
 	        }
  	        printWriter.flush();

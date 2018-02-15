@@ -1,6 +1,7 @@
 package com.datamelt.neo4j.csv;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class RelationFile
 {
@@ -14,10 +15,9 @@ public class RelationFile
 	private String relationType;
 	private String startNodeLabel;
 	private String endNodeLabel;
-	private ArrayList<Attribute> metadataAttributes = new ArrayList<Attribute>();
-	private ArrayList<Attribute> attributes = new ArrayList<>();
-	private ArrayList<RelationFileValue> values = new ArrayList<>();
-	
+	private ArrayList<Attribute> metadataAttributes;
+	private ArrayList<Attribute> attributes;
+	private HashMap<String,RelationFileValue> values = new HashMap<>(1000);
 	public RelationFile(String startNodeLabel, String endNodeLabel, String relationType, ArrayList<Attribute> attributes, ArrayList<Attribute> metadataAttributes)
 	{
 		this.startNodeLabel = startNodeLabel;
@@ -27,14 +27,14 @@ public class RelationFile
 		this.metadataAttributes = metadataAttributes;
 	}
 	
-	public void addValue(String startNodeValue, String endNodeValue,ArrayList<Object> attrbuteValues)
+	public void addValue(String startNodeValue, String endNodeValue,ArrayList<String> attributeValues)
 	{
-		RelationFileValue fileValue = new RelationFileValue(startNodeValue, endNodeValue, attrbuteValues);
+		RelationFileValue fileValue = new RelationFileValue(startNodeValue, endNodeValue, attributeValues);
 		// only add value for the relation if it does not exist already
-		if(!values.contains(fileValue))
-		{
-			values.add(fileValue);
-		}
+		//if(!values.contains(fileValue))
+		//{
+			values.put(startNodeValue+attributeValues.toString()+endNodeValue,fileValue);
+		//}
 	}
 
 	public String getHeader(String delimiter)
@@ -82,7 +82,7 @@ public class RelationFile
 		return endNodeLabel;
 	}
 
-	public ArrayList<RelationFileValue> getValues()
+	public HashMap<String,RelationFileValue> getValues()
 	{
 		return values;
 	}

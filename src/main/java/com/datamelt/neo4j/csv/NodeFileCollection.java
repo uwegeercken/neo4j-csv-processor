@@ -71,12 +71,12 @@ public class NodeFileCollection
 	        PrintWriter printWriter = new PrintWriter(fileWriter);
 	        printWriter.println(nodeFile.getHeader(delimiter));
 
-	        HashMap<String, ArrayList<Object>> map = nodeFile.getValues();
-	        for (Entry<String, ArrayList<Object>> entry : map.entrySet()) 
+	        HashMap<String, ArrayList<String>> map = nodeFile.getValues();
+	        for (Entry<String, ArrayList<String>> entry : map.entrySet()) 
 	        {
 	        	StringBuffer buffer = new StringBuffer();
 	        	String key = entry.getKey();
-	        	ArrayList<Object> value = entry.getValue();
+	        	ArrayList<String> value = entry.getValue();
 	            buffer.append(key).append(delimiter);
 	            for(int j=0;j<value.size();j++)
 	            {

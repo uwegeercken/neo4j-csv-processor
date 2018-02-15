@@ -23,6 +23,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 import org.neo4j.driver.v1.AuthTokens;
@@ -30,6 +31,7 @@ import org.neo4j.driver.v1.Driver;
 import org.neo4j.driver.v1.GraphDatabase;
 import org.neo4j.driver.v1.Session;
 
+import com.datamelt.neo4j.csv.CsvHeader;
 import com.datamelt.neo4j.csv.NodesCollector;
 import com.datamelt.util.MessageUtility;
 
@@ -132,12 +134,6 @@ public class NodeToCsvProcessor
 	        	System.out.println(MessageUtility.getFormattedMessage("start of processing..."));
 	    		System.out.println(MessageUtility.getFormattedMessage("writing CSV files to folder: " + outputFolder));
 	
-	    		NodesCollector collector = new NodesCollector(hostname,username,password, outputFolder);
-	    		collector.writeSchemaAsCypherStatement();
-	    		
-	    		System.out.println(MessageUtility.getFormattedMessage("number of nodes found: " + collector.getNumberOfNodes()));
-	    		System.out.println(MessageUtility.getFormattedMessage("number of relations found: " + collector.getNumberOfRelations()));
-	    		
 	    		String line;		
 	    	    File csvFile = new File(csvFilename);
 	    		try(BufferedReader br = new BufferedReader(new FileReader(csvFile)))
@@ -145,17 +141,24 @@ public class NodeToCsvProcessor
 	    	    	long lineCounter = 0;
 	    	    	
 	    	    	String headerLine = br.readLine();
+	    	    	CsvHeader header = null;
 	    		    if(headerLine!=null)
 	    		    {
 	    		    	lineCounter++;
-	    		    	collector.setCsvHeader(headerLine, delimiter);
+	    		    	header = new CsvHeader(headerLine, delimiter);
 	    		    }
 	    		
+		    		NodesCollector collector = new NodesCollector(hostname,username,password, outputFolder,header);
+		    		collector.writeSchemaAsCypherStatement();
+		    		
+		    		System.out.println(MessageUtility.getFormattedMessage("number of nodes found: " + collector.getNumberOfNodes()));
+		    		System.out.println(MessageUtility.getFormattedMessage("number of relations found: " + collector.getNumberOfRelations()));
+		    		
 	    		    System.out.println(MessageUtility.getFormattedMessage("processing CSV file: " + csvFilename));
 	    		    long filesize =csvFile.length();
 	    		    double bytesProcessed=headerLine.length();
 	    		    double percentage = 0;
-	    		    int percentageIncrement= 10;
+	    		    int percentageIncrement= 5;
 	    		    long percentageLimit=percentageIncrement;
 	    		    while ((line = br.readLine()) != null && !line.trim().equals("") && !line.startsWith("#")) 
 	    	        {
@@ -167,20 +170,40 @@ public class NodeToCsvProcessor
 	    		    		percentageLimit = percentageLimit + percentageIncrement;
 	    		    		System.out.println(MessageUtility.getFormattedMessage("percent complete: " + (long)percentage) + " - rows: " + lineCounter);
 	    		    	}
-	    	    		collector.processLine(line,lineCounter,delimiter);
+	    		    	int startPosition=0;
+	    		    	int position=-1;
+	    		    	ArrayList<String> columns = new ArrayList<>();
+	    		    	do
+	    		    	{
+	    		    		position = line.indexOf(delimiter,startPosition);
+	    		    		if(position>-1)
+	    		    		{
+	    		    			columns.add(line.substring(startPosition, position));
+	    		    			startPosition = position+1;
+	    		    		}
+	    		    		else
+	    		    		{
+	    		    			if(line.substring(startPosition)!=null)
+	    		    			{
+	    		    				columns.add(line.substring(startPosition));
+	    		    			}
+	    		    		}
+	    		    	} while (position>=0);
+	    		    	
+	    		    	collector.processLine(columns,lineCounter);
 	    	        }
 	    		    System.out.println(MessageUtility.getFormattedMessage("processed rows: " + lineCounter));
+	    		    
+	    		    System.out.println(MessageUtility.getFormattedMessage("writing CSV files for nodes..."));
+		    	    collector.writeNodeFiles(delimiter);
+		    	    
+		    	    System.out.println(MessageUtility.getFormattedMessage("writing CSV files for relations..."));
+		    	    collector.writeRelationFiles(delimiter);
 	    	    }
 	    	    catch (IOException e)
 	    	    {
 	                e.printStackTrace();
 	            }
-	    	    
-	    	    System.out.println(MessageUtility.getFormattedMessage("writing CSV files for nodes..."));
-	    	    collector.writeNodeFiles(delimiter);
-	    	    
-	    	    System.out.println(MessageUtility.getFormattedMessage("writing CSV files for relations..."));
-	    	    collector.writeRelationFiles(delimiter);
 	    	    
 	    	    Calendar end = Calendar.getInstance();
 	            long elapsed = end.getTimeInMillis() - start.getTimeInMillis();

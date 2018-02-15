@@ -1,36 +1,42 @@
 package com.datamelt.neo4j.csv;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-
-import com.datamelt.util.MessageUtility;
 
 public class NodeToCsvMapper
 {
-	public static HashMap<String,Integer> attributesToCsvPositions(NodesCollection nodes,RelationsCollection relations, CsvHeader header)
+	public static void mapColumnsToAttributes(Node node, CsvHeader header)
 	{
-		ArrayList<Attribute> attributes = nodes.getAllNodesAttributes();
-		attributes.addAll(relations.getAllRelationsAttributes());
-	    HashMap<String,Integer> attributePositions = new HashMap<>();
-	    HashSet<String> missingFields = new HashSet<>();
-	    for(int f=0;f<attributes.size();f++)
+		String idFieldKey = node.getIdFieldKey();
+		
+		HashMap<Integer,Integer> map = new HashMap<>(header.getPositions().size());
+		for(int f=0;f<node.getAttributes().size();f++)
 		{
-			Attribute attribute = attributes.get(f);
-			int position = header.getColumnNumber(attribute.getValue());
-			if(position>-1)
+			Attribute attribute = node.getAttributes().getAttribute(f);
+			if(header.getPositions().containsKey(attribute.getValue()))
 			{
-				attributePositions.put(attribute.getValue(), position);
-			}
-			else
-			{
-    			missingFields.add(attribute.getValue());
+				int position = header.getPositions().get(attribute.getValue());
+   				map.put(position, f);
+   				if(attribute.getValue().equals(idFieldKey))
+   				{
+   					node.setKeyAttributeIndex(position);
+   				}
 			}
 		}
-	    if(missingFields.size()>0)
-	    {
-	    	System.out.println(MessageUtility.getFormattedMessage("column not found in CSV file header: " + missingFields.toString()));
-	    }
-	    return attributePositions;
+		node.setCsvColumnToAttributesMap(map);
+	}
+	
+	public static void mapColumnsToAttributes(Relation relation, CsvHeader header)
+	{
+		HashMap<Integer,Integer> map = new HashMap<>(header.getPositions().size());
+		for(int f=0;f<relation.getAttributes().size();f++)
+		{
+			Attribute attribute = relation.getAttributes().getAttribute(f);
+			if(header.getPositions().containsKey(attribute.getValue()))
+			{
+				int position = header.getPositions().get(attribute.getValue());
+   				map.put(position, f);
+			}
+		}
+		relation.setCsvColumnToAttributesMap(map);
 	}
 }

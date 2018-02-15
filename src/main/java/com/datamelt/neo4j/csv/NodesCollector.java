@@ -2,7 +2,6 @@ package com.datamelt.neo4j.csv;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 import org.neo4j.driver.v1.AuthTokens;
@@ -37,12 +36,13 @@ public class NodesCollector
 	private NodeFileCollection nodeFiles;
 	private RelationFileCollection relationFiles;
 	private String outputFolder;
-	CsvHeader header;
+	private CsvHeader header;
 	HashMap<String,Integer> attributePositions;
 	
-	public NodesCollector(String hostname, String username, String password, String outputFolder)
+	public NodesCollector(String hostname, String username, String password, String outputFolder, CsvHeader header)
 	{
 		this.outputFolder = outputFolder;
+		this.header = header;
 		
 		Driver driver = GraphDatabase.driver(DEFAULT_PROTOCOL +"://" + hostname, AuthTokens.basic(username,password));
 		this.session = driver.session();
@@ -53,7 +53,6 @@ public class NodesCollector
 		{
 			collectRelations(nodes.getNode(i));
 		}
-		
 		session.close();
 		
 		nodeFiles = new NodeFileCollection(nodes);
@@ -99,10 +98,13 @@ public class NodesCollector
 	        if(keys.size()>0)
 	        {
 	        	collectAttributeValues(node);
+	        	NodeToCsvMapper.mapColumnsToAttributes(node,header);
 	        }
 	        nodes.addNode(node);
 	    }
 	}
+	
+	
 	
 	public int getNumberOfNodes()
 	{
@@ -114,58 +116,22 @@ public class NodesCollector
 		return relations.size();
 	}
 	
-	public void setCsvHeader(String line, String delimiter)
+	public void processLine(ArrayList<String> columns, long counter)
 	{
-		header = new CsvHeader(line, delimiter);
-		mapNodeAttributes();
-	}
-	
-	private void mapNodeAttributes() 
-	{
-		attributePositions = NodeToCsvMapper.attributesToCsvPositions(nodes, relations, header);
-	}
-	
-	public void processLine(String line, long counter,String delimiter)
-	{
-	    String[] columns = line.split(delimiter);
-	    int numberOfColumns = columns.length;
-	    HashSet<String> missingFields = new HashSet<>();
 		for(int i=0;i<nodes.size();i++)
     	{
     		Node node = nodes.getNode(i);
     		NodeFile nodeFile = nodeFiles.getNodeFile(node.getLabel());
-    		ArrayList<Object> values = new ArrayList<>();
-    		Attribute idAttribute = node.getMetadataAttributes().getAttributeByKey(MetadataAttribute.ID_FIELD.key());
-    		String keyValue = null;
-    		for(int f=0;f<node.getAttributes().size();f++)
-    		{
-    			Attribute attribute = node.getAttributes().getAttribute(f);
-				if(attributePositions.containsKey(attribute.getValue()))
-				{
-    				int position = attributePositions.get(attribute.getValue());
-	    			if(position < numberOfColumns)
-	    			{
-	    				String value = columns[position];
-		    			if(!attribute.getValue().equals(idAttribute.getValue()))
-		    			{
-		    				values.add(value);
-		    			}
-		    			else
-		    			{
-		    				keyValue = value;
-		    			}
-	    			}
-	    			else
-	    			{
-	    				missingFields.add(attribute.getValue());
-	    			}
-				}
-    		}
-    		if(keyValue!=null)
-    		{
-    			nodeFile.addValue(keyValue, values);
-    		}
     		
+    		HashMap<Integer, Integer> nodesMap = node.getCsvColumnToAttributesMap();
+    		ArrayList<String> values = new ArrayList<>(nodesMap.size());
+    		for(int key : nodesMap.keySet())
+    		{
+    			String value = columns.get(key);
+    			values.add(value);
+    		}
+   			nodeFile.addValue(columns.get(node.getKeyAttributeIndex()), values);
+   			
     		ArrayList<Relation> startNodeRelations = relations.getRelations(node);
     		for(int k=0;k<startNodeRelations.size();k++)
     		{
@@ -173,49 +139,18 @@ public class NodesCollector
     			Node endNode = relation.getEndNode();
     			RelationFile relationFile = relationFiles.get(node, endNode, relation.getRelationType());
     			
-    			String endNodeIdFieldKey = endNode.getIdFieldKey();
-    			String endNodeIdFieldValue = null;
-    			if(attributePositions.containsKey(endNodeIdFieldKey))
-				{
-    				int position = attributePositions.get(endNodeIdFieldKey);
-	    			if(position < numberOfColumns)
-	    			{
-	    				endNodeIdFieldValue = columns[position];
-	    			}
-	    		}
-    			else
-    			{
-    				missingFields.add(endNodeIdFieldKey);
-    			}
-    			
-    			ArrayList<Object> relationValues = new ArrayList<>();
-    			for(int f=0;f<relation.getAttributes().size();f++)
+    			HashMap<Integer, Integer> relationsMap = relation.getCsvColumnToAttributesMap();
+    			ArrayList<String> relationValues = new ArrayList<>(relationsMap.size());
+    			for(int key : relationsMap.keySet())
         		{
-        			Attribute attribute = relation.getAttributes().getAttribute(f);
-    				if(attributePositions.containsKey(attribute.getValue()))
-    				{
-        				int position = attributePositions.get(attribute.getValue());
-    	    			if(position < numberOfColumns)
-    	    			{
-    	    				String value = columns[position];
-    	    				relationValues.add(value);
-    	    			}
-    	    			else
-    	    			{
-    	    				missingFields.add(attribute.getValue());
-    	    			}
-    				}
+        			String value = columns.get(key);
+        			relationValues.add(value);
         		}
-    			if(endNodeIdFieldValue!=null)
-        		{
-    				relationFile.addValue(keyValue, endNodeIdFieldValue,relationValues);
-        		}
+   			
+   				relationFile.addValue(columns.get(node.getKeyAttributeIndex()), columns.get(endNode.getKeyAttributeIndex()),relationValues);
+
     		}
     	}
-		if(missingFields.size()>0)
-		{
-			System.out.println(MessageUtility.getFormattedMessage("line: [" + counter + "]: columns not found: " + missingFields.toString()));
-		}
 	}
 	
 	public void writeNodeFiles(String delimiter) throws Exception
@@ -318,7 +253,7 @@ public class NodesCollector
     	    		{
     	    			attribute.setJavaType(values[1]);
     	    		}
-    	    		attribute.setValue(value);
+    	    		attribute.setValue(values[0]);
     	    	}
     		}
     	}
@@ -359,6 +294,7 @@ public class NodesCollector
 		        if(keys.size()>0)
 		        {
 		        	collectAttributeValues(relation);
+		        	NodeToCsvMapper.mapColumnsToAttributes(relation,header);
 		        }
 		    	
 		    	relations.addRelation(relation);

@@ -1,12 +1,14 @@
 package com.datamelt.neo4j.csv;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Relation
 {
 	private Node startNode;
 	private Node endNode;
 	private String relationType;
+	private HashMap<Integer,Integer> csvColumnToAttributesMap = new HashMap<>();
 	
 	private Attributes metadataAttributes = new Attributes();
 	private Attributes attributes = new Attributes();
@@ -116,5 +118,15 @@ public class Relation
 		{
 			return false;
 		}
+	}
+	
+	public HashMap<Integer, Integer> getCsvColumnToAttributesMap()
+	{
+		return csvColumnToAttributesMap;
+	}
+	
+	public void setCsvColumnToAttributesMap(HashMap<Integer, Integer> csvColumnToAttributesMap)
+	{
+		this.csvColumnToAttributesMap = csvColumnToAttributesMap;
 	}
 }

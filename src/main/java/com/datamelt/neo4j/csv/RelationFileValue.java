@@ -6,9 +6,9 @@ public class RelationFileValue
 {
 	private String startNodeValue;
 	private String endNodeValue;
-	ArrayList<Object> attributeValues = new ArrayList<>();
+	ArrayList<String> attributeValues;
 	
-	public RelationFileValue(String startNodeValue, String endNodeValue,ArrayList<Object> attributeValues)
+	public RelationFileValue(String startNodeValue, String endNodeValue,ArrayList<String> attributeValues)
 	{
 		this.startNodeValue = startNodeValue;
 		this.endNodeValue = endNodeValue;
@@ -25,7 +25,7 @@ public class RelationFileValue
 		return endNodeValue;
 	}
 	
-	public ArrayList<Object> getAttributeValues()
+	public ArrayList<String> getAttributeValues()
 	{
 		return attributeValues;
 	}

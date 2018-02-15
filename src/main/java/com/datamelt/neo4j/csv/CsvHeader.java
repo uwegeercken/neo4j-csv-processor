@@ -5,11 +5,12 @@ import java.util.HashMap;
 public class CsvHeader
 {
 	private String[] columns;
+	private String delimiter;
 	private HashMap<String,Integer> positions = new HashMap<>();
 	
-	
-	public CsvHeader(String headerLine,String delimiter)
+	public CsvHeader(String headerLine, String delimiter)
 	{
+		this.delimiter = delimiter;
 		columns = headerLine.split(delimiter);
 		for(int i=0;i<columns.length;i++)
 		{
@@ -31,6 +32,14 @@ public class CsvHeader
 		}
 		return position;
 	}
-	
-	
+
+	public String getDelimiter()
+	{
+		return delimiter;
+	}
+
+	public HashMap<String, Integer> getPositions()
+	{
+		return positions;
+	}
 }

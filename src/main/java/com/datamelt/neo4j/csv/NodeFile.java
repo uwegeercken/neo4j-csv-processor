@@ -14,9 +14,9 @@ public class NodeFile
 	
 	private String nodeLabel;
 	private String idFieldName;
-	private ArrayList<Attribute> metadataAttributes = new ArrayList<Attribute>();
-	private ArrayList<Attribute> attributes = new ArrayList<>();
-	private HashMap<String,ArrayList<Object>> values = new HashMap<>();
+	private ArrayList<Attribute> metadataAttributes;
+	private ArrayList<Attribute> attributes;
+	private HashMap<String,ArrayList<String>> values = new HashMap<>(1000);
 	
 	public NodeFile(String nodeLabel, String idFieldName, ArrayList<Attribute> attributes,ArrayList<Attribute> metadataAttributes)
 	{
@@ -26,7 +26,7 @@ public class NodeFile
 		this.metadataAttributes = metadataAttributes;
 	}
 	
-	public void addValue(String key,ArrayList<Object> values)
+	public void addValue(String key,ArrayList<String> values)
 	{
 		this.values.put(key,values);
 	}
@@ -64,7 +64,7 @@ public class NodeFile
 		return getNodeLabel() + CSV_FILE_EXTENSION;
 	}
 
-	public HashMap<String,ArrayList<Object>> getValues()
+	public HashMap<String,ArrayList<String>> getValues()
 	{
 		return values;
 	}

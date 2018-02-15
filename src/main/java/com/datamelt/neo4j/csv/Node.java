@@ -1,12 +1,15 @@
 package com.datamelt.neo4j.csv;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Node
 {
 	private String label;
+	private int keyAttributeIndex;
 	private Attributes metadataAttributes = new Attributes();
 	private Attributes attributes = new Attributes();
+	private HashMap<Integer,Integer> csvColumnToAttributesMap = new HashMap<>();
 	
 	public String getLabel()
 	{
@@ -38,8 +41,7 @@ public class Node
 	
 	public Attribute getKeyAttribute()
 	{
-		String idFieldKey = getIdFieldKey();
-		return attributes.getAttributeByKey(idFieldKey);
+		return attributes.getAttribute(keyAttributeIndex);
 	}
 	
 	/**
@@ -105,5 +107,25 @@ public class Node
 	public boolean equals(Node node)
 	{
 		return this.getLabel().equals(node.getLabel());
+	}
+
+	public HashMap<Integer, Integer> getCsvColumnToAttributesMap()
+	{
+		return csvColumnToAttributesMap;
+	}
+
+	public void setCsvColumnToAttributesMap(HashMap<Integer, Integer> csvColumnToAttributesMap)
+	{
+		this.csvColumnToAttributesMap = csvColumnToAttributesMap;
+	}
+
+	public int getKeyAttributeIndex()
+	{
+		return keyAttributeIndex;
+	}
+
+	public void setKeyAttributeIndex(int keyAttributeIndex)
+	{
+		this.keyAttributeIndex = keyAttributeIndex;
 	}
 }
