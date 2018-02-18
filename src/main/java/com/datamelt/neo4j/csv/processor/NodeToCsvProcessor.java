@@ -39,8 +39,8 @@ public class NodeToCsvProcessor
 {
 	// the version of the business rule engine
 	private static final String VERSION = "0.2";
-	private static final String REVISION = "1";
-	private static final String LAST_UPDATE = "2018-02-13";
+	private static final String REVISION = "2";
+	private static final String LAST_UPDATE = "2018-02-17";
 	
 	private static String hostname;
 	private static String username;
@@ -117,13 +117,13 @@ public class NodeToCsvProcessor
     			boolean csvFileOk = checkCsvFileAccessible(csvFilename);
     			if(!csvFileOk)
     			{
-    				System.out.println(" error - CSV file is not existing or can not be read");
+    				System.out.println("error - CSV file is not existing or can not be read");
     				error = true;
     			}
     		}
     		if(!checkDatabaseAccess())
     		{
-    			System.out.println(" error - can not access neo4j host. check if the host is available and credentials are correct.");
+    			System.out.println("error - can not access neo4j host. check if the host is available and credentials are correct.");
     			error = true;
     		}
     		
@@ -149,56 +149,67 @@ public class NodeToCsvProcessor
 	    		    }
 	    		
 		    		NodesCollector collector = new NodesCollector(hostname,username,password, outputFolder,header);
-		    		collector.writeSchemaAsCypherStatement();
 		    		
 		    		System.out.println(MessageUtility.getFormattedMessage("number of nodes found: " + collector.getNumberOfNodes()));
 		    		System.out.println(MessageUtility.getFormattedMessage("number of relations found: " + collector.getNumberOfRelations()));
 		    		
-	    		    System.out.println(MessageUtility.getFormattedMessage("processing CSV file: " + csvFilename));
-	    		    long filesize =csvFile.length();
-	    		    double bytesProcessed=headerLine.length();
-	    		    double percentage = 0;
-	    		    int percentageIncrement= 5;
-	    		    long percentageLimit=percentageIncrement;
-	    		    while ((line = br.readLine()) != null && !line.trim().equals("") && !line.startsWith("#")) 
-	    	        {
-	    		    	lineCounter++;
-	    		    	bytesProcessed = bytesProcessed + line.length();
-	    		    	percentage = bytesProcessed/filesize * 100;
-	    		    	if(percentage>= percentageLimit)
-	    		    	{
-	    		    		percentageLimit = percentageLimit + percentageIncrement;
-	    		    		System.out.println(MessageUtility.getFormattedMessage("percent complete: " + (long)percentage) + " - rows: " + lineCounter);
-	    		    	}
-	    		    	int startPosition=0;
-	    		    	int position=-1;
-	    		    	ArrayList<String> columns = new ArrayList<>();
-	    		    	do
-	    		    	{
-	    		    		position = line.indexOf(delimiter,startPosition);
-	    		    		if(position>-1)
-	    		    		{
-	    		    			columns.add(line.substring(startPosition, position));
-	    		    			startPosition = position+1;
-	    		    		}
-	    		    		else
-	    		    		{
-	    		    			if(line.substring(startPosition)!=null)
-	    		    			{
-	    		    				columns.add(line.substring(startPosition));
-	    		    			}
-	    		    		}
-	    		    	} while (position>=0);
-	    		    	
-	    		    	collector.processLine(columns,lineCounter);
-	    	        }
-	    		    System.out.println(MessageUtility.getFormattedMessage("processed rows: " + lineCounter));
-	    		    
-	    		    System.out.println(MessageUtility.getFormattedMessage("writing CSV files for nodes..."));
-		    	    collector.writeNodeFiles(delimiter);
-		    	    
-		    	    System.out.println(MessageUtility.getFormattedMessage("writing CSV files for relations..."));
-		    	    collector.writeRelationFiles(delimiter);
+		    		if(collector.getNumberOfNodes()>0)
+		    		{
+		    		
+		    		
+		    		
+		    		collector.writeSchemaAsCypherStatement();
+		    		
+		    		    System.out.println(MessageUtility.getFormattedMessage("processing CSV file: " + csvFilename));
+		    		    long filesize =csvFile.length();
+		    		    double bytesProcessed=headerLine.length();
+		    		    double percentage = 0;
+		    		    int percentageIncrement= 5;
+		    		    long percentageLimit=percentageIncrement;
+		    		    while ((line = br.readLine()) != null && !line.trim().equals("") && !line.startsWith("#")) 
+		    	        {
+		    		    	lineCounter++;
+		    		    	bytesProcessed = bytesProcessed + line.length();
+		    		    	percentage = bytesProcessed/filesize * 100;
+		    		    	if(percentage>= percentageLimit)
+		    		    	{
+		    		    		percentageLimit = percentageLimit + percentageIncrement;
+		    		    		System.out.println(MessageUtility.getFormattedMessage("percent complete: " + (long)percentage) + " - rows: " + lineCounter);
+		    		    	}
+		    		    	int startPosition=0;
+		    		    	int position=-1;
+		    		    	ArrayList<String> columns = new ArrayList<>();
+		    		    	do
+		    		    	{
+		    		    		position = line.indexOf(delimiter,startPosition);
+		    		    		if(position>-1)
+		    		    		{
+		    		    			columns.add(line.substring(startPosition, position));
+		    		    			startPosition = position+1;
+		    		    		}
+		    		    		else
+		    		    		{
+		    		    			if(line.substring(startPosition)!=null)
+		    		    			{
+		    		    				columns.add(line.substring(startPosition));
+		    		    			}
+		    		    		}
+		    		    	} while (position>=0);
+		    		    	
+		    		    	collector.processLine(columns,lineCounter);
+		    	        }
+		    		    System.out.println(MessageUtility.getFormattedMessage("processed rows: " + lineCounter));
+		    		    
+		    		    System.out.println(MessageUtility.getFormattedMessage("writing CSV files for nodes..."));
+			    	    collector.writeNodeFiles(delimiter);
+			    	    
+			    	    System.out.println(MessageUtility.getFormattedMessage("writing CSV files for relations..."));
+			    	    collector.writeRelationFiles(delimiter);
+		    		}
+		    		else
+		    		{
+		    			System.out.println(MessageUtility.getFormattedMessage("no nodes to process - stopping process"));
+		    		}
 	    	    }
 	    	    catch (IOException e)
 	    	    {
