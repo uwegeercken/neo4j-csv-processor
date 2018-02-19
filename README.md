@@ -10,6 +10,8 @@ The tool will extract the nodes, their properties and the relations between the 
 
 Run the tool:
 
+First download the neo4j_csv_processor-0.2.0.jar file.
+
 java -cp neo4j_csv_processor-0.2.0.jar com.datamelt.neo4j.csv.processor.NodeToCsvProcessor <arguments>
 
 Pass following arguments:
@@ -25,6 +27,7 @@ Example:
 
 java -cp neo4j_csv_processor-0.2.0.jar com.datamelt.neo4j.csv.processor.NodeToCsvProcessor -h=localhost -u=neo4j -p=xxxx -o=/opt/neo4j-community-3.3.2/import -c=/data/file.csv -d=;
 
+
 This is the first version of the tool with only basic functionallity. I will continue to integrate more features in the future.
 
 Some ideas for future versions:
@@ -32,5 +35,5 @@ Some ideas for future versions:
 - integrate a ruleengine to allow to process, filter and modify (adjust) the data before import
 - handle large data sets
 
-last update: Uwe Geercken, 2018-02-12
+last update: Uwe Geercken, 2018-02-19
 
