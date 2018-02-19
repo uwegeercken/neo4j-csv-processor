@@ -6,13 +6,17 @@ What is special about this tool is, that the mapping of the nodes and relations 
 
 Following this use-case, you can go ahead and model your graph as you would usually do. Before running this tool, the nodes have to be tagged with a specific label; these are in turn the nodes that the tool will use. The node properties contain the name of the column in the CSV file to use. There are also some other properties that have to be defined serving as metadata to the tool; e.g. which column in the CSV file is the key for a node and the namespace to use for the neo4j-import tool.
 
-The tool will extract the nodes, their properties and the relations between the nodes and finally create the CSV files. These are then ready to use with the neo4j-import tool.
+The CSV file needs to have a header row which also uses the same delimiter as the data rows. For the tool to work, you need to label those nodes that shall be considered by the tool with the label ":csvdef". Also add a property: "id_field" to the node and point it to the name of the column in the CSV file which is the key field (unique key) for the node. Here is an example:
+
+create (node:Employee:csvdef {id_field:"employee_key", first_name:"first_name", name:"full_name", last_name:"last_name", entry_date:"entry_date", employee_key:"employee_key", exit_date:"exit_date", birth_date:"birth_date"});
+
+The tool will extract the nodes from the active neo4j database, extract their properties and the relations between the nodes and finally create the CSV files. These are then ready to use with the neo4j-import tool.
 
 Run the tool:
 
 First download the neo4j_csv_processor-0.2.0.jar file.
 
-java -cp neo4j_csv_processor-0.2.0.jar com.datamelt.neo4j.csv.processor.NodeToCsvProcessor <arguments>
+java -cp neo4j_csv_processor-0.2.0.jar com.datamelt.neo4j.csv.processor.NodeToCsvProcessor arguments...
 
 Pass following arguments:
 
