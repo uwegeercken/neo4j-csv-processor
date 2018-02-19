@@ -31,6 +31,7 @@ Example:
 
 java -cp neo4j_csv_processor-0.2.0.jar com.datamelt.neo4j.csv.processor.NodeToCsvProcessor -h=localhost -u=neo4j -p=xxxx -o=/opt/neo4j-community-3.3.2/import -c=/data/file.csv -d=;
 
+There is also a shell script available which you can use to run the tool: run_neo4j_csv_processor.sh
 
 This is the first version of the tool with only basic functionallity. I will continue to integrate more features in the future.
 
