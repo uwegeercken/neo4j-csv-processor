@@ -8,6 +8,23 @@ Following this use-case, you can go ahead and model your graph as you would usua
 
 The tool will extract the nodes, their properties and the relations between the nodes and finally create the CSV files. These are then ready to use with the neo4j-import tool.
 
+Run the tool:
+
+java -cp neo4j_csv_processor-0.2.0.jar com.datamelt.neo4j.csv.processor.NodeToCsvProcessor <arguments>
+
+Pass following arguments:
+
+-h = neo4j hostname
+-u = neo4j user
+-p = neo4j user password
+-o = output folder
+-c = CSV file to use (path and filename)
+-d = delimiter used in the CSV file
+
+Example:
+
+java -cp neo4j_csv_processor-0.2.0.jar com.datamelt.neo4j.csv.processor.NodeToCsvProcessor -h=localhost -u=neo4j -p=xxxx -o=/opt/neo4j-community-3.3.2/import -c=/data/file.csv -d=;
+
 This is the first version of the tool with only basic functionallity. I will continue to integrate more features in the future.
 
 Some ideas for future versions:
