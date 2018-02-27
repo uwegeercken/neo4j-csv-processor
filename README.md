@@ -16,7 +16,7 @@ We assume we have a CSV file with following columns: key, last_name, birth_date,
 
 create (node:Employee:Meta {lname:"last_name", employee_key:"key:ID", birth_date:"birth_date", year_of_birth: "born:int"});
 
-Note that we have a label "Meta". When we run the neo4j-csv-processor we will tell it to use which have this label. We also have the mandatory ID field and the year_of_birth is marked as type "integer".
+Note that we have a label "Meta". When we run the neo4j-csv-processor we will tell it to use nodes which have this label. We also have the mandatory "ID" field and the year_of_birth is marked as type "integer".
 
 or
 
@@ -36,7 +36,7 @@ The tool will extract the nodes from the active neo4j database, extract their pr
 
 Run the tool:
 
-First download the neo4j_csv_processor-0.2.0.jar file. You also need the neo4j jdbc files which you can download from their website.
+First download the neo4j_csv_processor-0.2.0.jar file and the neo4j jdbc file.
 
 java -cp neo4j_csv_processor-0.2.0.jar:neo4j-jdbc-driver-3.0.jar com.datamelt.neo4j.csv.processor.NodeToCsvProcessor arguments...
 
@@ -47,7 +47,7 @@ Pass following arguments:
 -p = neo4j user password
 -o = output folder
 -c = CSV file to use (path and filename)
--d = optional. default ";". delimiter used in the CSV file
+-d = optional. default ";". delimiter used in the CSV file and Header
 -l = optional. default "Meta". the name of the label used as metadata. only nodes with this label are processed.
 
 Example:
