@@ -1,6 +1,8 @@
 package com.datamelt.neo4j.csv;
 
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 
 public class CsvHeader
 {
@@ -16,6 +18,20 @@ public class CsvHeader
 		{
 			positions.put(columns[i], i);
 		}
+	}
+	
+	public void removeColumns(HashSet<Integer> requiredColumns)
+	{
+		HashMap<String,Integer> requiredPositions = new HashMap<>();
+		for(Map.Entry<String, Integer> entry : positions.entrySet())
+		{
+			int position = entry.getValue();
+			if(!requiredColumns.contains(position))
+			{
+				requiredPositions.put(entry.getKey(), entry.getValue());
+			}
+		}
+		positions = requiredPositions;
 	}
 	
 	public String[] getColumns()

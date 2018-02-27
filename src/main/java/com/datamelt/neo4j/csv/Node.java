@@ -3,6 +3,8 @@ package com.datamelt.neo4j.csv;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import com.datamelt.neo4j.csv.util.MetadataAttribute;
+
 public class Node
 {
 	private String label;
@@ -26,11 +28,36 @@ public class Node
 		return attributes;
 	}
 
+	public ArrayList<String> getAttributesKeys()
+	{
+		return attributes.getAttributeKeys();
+	}
+
+	public ArrayList<String> getAttributesValues()
+	{
+		return attributes.getAttributeValues();
+	}
+
 	public Attributes getMetadataAttributes()
 	{
 		return metadataAttributes;
 	}
-
+	
+	public String getNamespace()
+	{
+		String nameSpace = null;
+		for(int j=0;j<metadataAttributes.size();j++)
+		{
+			Attribute attribute = metadataAttributes.getAttribute(j);
+			if(attribute.getKey().equals(MetadataAttribute.NAMESPACE.key()))
+			{
+				nameSpace = attribute.getValue();
+				break;
+			}
+		}
+		return nameSpace;
+	}
+	
 	public ArrayList<Attribute> getAllAttributes()
 	{
 		ArrayList<Attribute> allAttributes = new ArrayList<>();
@@ -42,33 +69,6 @@ public class Node
 	public Attribute getKeyAttribute()
 	{
 		return attributes.getAttribute(keyAttributeIndex);
-	}
-	
-	/**
-	 * returns the name of the field which is the key for
-	 * the relevant node
-	 * 
-	 */
-	public String getIdFieldKey()
-	{
-		int found =-1;
-		
-		for(int i=0;i<metadataAttributes.getAttributes().size();i++)
-		{
-			if(metadataAttributes.getAttributes().get(i).isIdField())
-			{
-				found = i;
-				break;
-			}
-		}
-		if(found>-1)
-		{
-			return metadataAttributes.getAttributes().get(found).getValue();
-		}
-		else
-		{
-			return null;
-		}
 	}
 	
 	public String getNodeCreateStatement(String nodeVariable, String csvDefinitionLabel)

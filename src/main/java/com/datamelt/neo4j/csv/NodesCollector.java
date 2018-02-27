@@ -1,23 +1,24 @@
 package com.datamelt.neo4j.csv;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
-import org.neo4j.driver.v1.AuthTokens;
-import org.neo4j.driver.v1.Driver;
-import org.neo4j.driver.v1.GraphDatabase;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Session;
 import org.neo4j.driver.v1.StatementResult;
 
+import com.datamelt.util.FileUtility;
 import com.datamelt.util.MessageUtility;
-import com.datamelt.neo4j.csv.util.MetadataAttribute;
+import com.datamelt.neo4j.csv.util.MetadataAttributeValue;
 
 public class NodesCollector
 {
-	private static final String DEFINITION_LABEL 					= "csvdef";
 	private static final String LABELS_LABEL 						= "labels";
 	private static final String KEYS_LABEL 							= "keys";
 	private static final String RELATIONS_LABEL						= "relation";
@@ -29,26 +30,28 @@ public class NodesCollector
 	public static final String DEFAULT_PROTOCOL 					= "bolt";
 	private static final String DEFAULT_ORIGINAL_SCHEMA_FILENAME 	= "original_schema.cyp"; 
 	
-	private static final String STATEMENT_DEFINITION_NODES = "MATCH (a :"+ DEFINITION_LABEL + ") RETURN labels(a) as " + LABELS_LABEL + ", keys(a) as " + KEYS_LABEL;
-	
 	private Session session;
 	private NodesCollection nodes = new NodesCollection();
 	private RelationsCollection relations = new RelationsCollection();
 	private NodeFileCollection nodeFiles;
 	private RelationFileCollection relationFiles;
 	private String outputFolder;
+	private String metaLabel;
 	private CsvHeader header;
 	HashMap<String,Integer> attributePositions;
+	HashSet<Integer> requiredColumns = new HashSet<>();
 	
-	public NodesCollector(String hostname, String username, String password, String outputFolder, CsvHeader header)
+	public NodesCollector(Session session, String outputFolder, String metaLabel,CsvHeader header)
 	{
 		this.outputFolder = outputFolder;
+		this.metaLabel = metaLabel;
 		this.header = header;
 		
-		Driver driver = GraphDatabase.driver(DEFAULT_PROTOCOL +"://" + hostname, AuthTokens.basic(username,password));
-		this.session = driver.session();
+		this.session = session;
 
 		collectNodes();
+		
+		//header.removeColumns(requiredColumns);
 		
 		for (int i=0;i<nodes.size();i++)
 		{
@@ -62,8 +65,10 @@ public class NodesCollector
 	
 	private void collectNodes()
 	{
+		final String STATEMENT_MATCH_NODES = "MATCH (a :"+ metaLabel + ") RETURN labels(a) as " + LABELS_LABEL + ", keys(a) as " + KEYS_LABEL;
+		
 		System.out.println(MessageUtility.getFormattedMessage("collecting information on nodes and attributes..."));
-		StatementResult result = session.run(STATEMENT_DEFINITION_NODES);
+		StatementResult result = session.run(STATEMENT_MATCH_NODES);
 		
 		while (result.hasNext())
 	    {
@@ -72,7 +77,7 @@ public class NodesCollector
 	        String nodeLabel = null;
 	        for(Object label : labels)
 	        {
-	        	if(!label.toString().equals(DEFINITION_LABEL))
+	        	if(!label.toString().equals(metaLabel))
 	        	{
 	        		nodeLabel = label.toString();
 	        	}
@@ -99,13 +104,11 @@ public class NodesCollector
 	        if(keys.size()>0)
 	        {
 	        	collectAttributeValues(node);
-	        	NodeToCsvMapper.mapColumnsToAttributes(node,header);
+	        	requiredColumns = NodeToCsvMapper.mapAttributesToColumns(node,header,requiredColumns);
 	        }
 	        nodes.addNode(node);
 	    }
 	}
-	
-	
 	
 	public int getNumberOfNodes()
 	{
@@ -117,7 +120,29 @@ public class NodesCollector
 		return relations.size();
 	}
 	
-	public void processLine(ArrayList<String> columns, long counter)
+	public void processKeys(ArrayList<String> columns, long counter)
+	{
+		for(int i=0;i<nodes.size();i++)
+    	{
+    		Node node = nodes.getNode(i);
+    		NodeFile nodeFile = nodeFiles.getNodeFile(node.getLabel());
+    		
+    		HashMap<Integer, Integer> nodesMap = node.getAttributesToCsvColumnMap();
+    		ArrayList<String> values = new ArrayList<>(nodesMap.size());
+    		for(Map.Entry<Integer, Integer>entry : nodesMap.entrySet())
+    		{
+    			if(entry.getValue()== node.getKeyAttributeIndex())
+    			{
+    				String value = columns.get(entry.getValue());
+    				values.add(value);
+    			}
+    		}
+    		nodeFile.addKey(columns.get(node.getKeyAttributeIndex()));
+   			
+    	}
+	}
+	
+	public void processLine(HashMap<Integer,String> columns, long counter)
 	{
 		for(int i=0;i<nodes.size();i++)
     	{
@@ -169,23 +194,38 @@ public class NodesCollector
 
 	public void writeSchemaAsCypherStatement() throws Exception
 	{
-		ArrayList<String> createNodesStatements = new ArrayList<>();
-		ArrayList<String> createRelationsStatements = new ArrayList<>();
-		
+		File folder = new File(outputFolder);
+	    if(folder.exists() && folder.isDirectory())
+	    {
+	    	FileUtility.backupFile(outputFolder, DEFAULT_ORIGINAL_SCHEMA_FILENAME);	
+	    }
+	    else
+	    {
+	    	folder.mkdirs();
+	    }
+	    
+		String fullFileName = outputFolder + "/" + DEFAULT_ORIGINAL_SCHEMA_FILENAME;
+    	
+    	System.out.println(MessageUtility.getFormattedMessage("writing file for original schema: " + DEFAULT_ORIGINAL_SCHEMA_FILENAME));
+    	
+    	FileWriter fileWriter = new FileWriter(fullFileName);
+        PrintWriter printWriter = new PrintWriter(fileWriter);
+
 		for(int i=0;i<nodes.size();i++)
 		{
 			Node node = nodes.getNode(i);
-			createNodesStatements.add(node.getNodeCreateStatement(NODE_VARIABLE, DEFINITION_LABEL));
+			printWriter.println(node.getNodeCreateStatement(NODE_VARIABLE, metaLabel));
 		}
 		
 		for(int i=0;i<relations.size();i++)
 		{
 			Relation relation = relations.getRelation(i); 
-			createRelationsStatements.add(relation.getRelationCreateStatement(NODE_START,NODE_END));
+			printWriter.println(relation.getRelationCreateStatement(NODE_START,NODE_END));
 		}
 		
-		NodeFileCollection.writeOriginalSchemaFile(outputFolder, DEFAULT_ORIGINAL_SCHEMA_FILENAME, createNodesStatements, createRelationsStatements);
-
+        printWriter.flush();
+        printWriter.close();
+        fileWriter.close();
 	}
 	
 	private void collectAttributeValues(Node node)
@@ -211,15 +251,27 @@ public class NodesCollector
 	    	{
 	    		Attribute attribute = node.getAllAttributes().get(j);
 	    		String value = record.get(NODE_VARIABLE + "." + attribute.getKey()).asString();
-	    		String values[] = value.split(":");
-	    		attribute.setValue(values[0]);
-	    		if(values.length>1)
+	    		if(value!=null && !value.trim().equals(""))
 	    		{
-	    			attribute.setJavaType(values[1]);
-	    		}
-	    		if(attribute.getKey().equals(MetadataAttribute.ID_FIELD.key()))
-	    		{
-	    			attribute.setIsIdField(true);
+		    		String values[] = value.split(":");
+		    		if(values.length>0)
+		    		{
+		    			for(int k=0;k<values.length;k++)
+		    			{
+		    				if(values[k].equals(MetadataAttributeValue.ID.key()))
+		    				{
+		    					attribute.setIsIdField(true);
+		    				}
+		    				else if(values[k].equals(MetadataAttributeValue.TYPE_INT.key())||values[k].equals(MetadataAttributeValue.TYPE_FLOAT.key()))
+		    				{
+		    					attribute.setJavaType(values[k]);
+		    				}
+		    				else
+		    				{
+		    					attribute.setValue(values[k]);
+		    				}
+		    			}
+		    		}
 	    		}
 	    	}
 		}
@@ -242,7 +294,6 @@ public class NodesCollector
     	if(relation.getAllAttributes().size()>0)
     	{
     		statement_relation_attributes= "MATCH (" + NODE_START + " :" + relation.getStartNode().getLabel() + ")-[" + RELATION_VARIABLE + "]-(" + NODE_END + " :" + relation.getEndNode().getLabel() + ") RETURN " + buffer.toString();
-    		
     		StatementResult result = session.run(statement_relation_attributes);
     		while (result.hasNext())
     	    {
@@ -251,13 +302,24 @@ public class NodesCollector
     	    	{
     	    		Attribute attribute = relation.getAllAttributes().get(j);
     	    		String value = record.get(RELATION_VARIABLE + "." + attribute.getKey()).asString();
-    	    		String values[] = value.split(":");
-    	    		attribute.setValue(values[0]);
-    	    		if(values.length>1)
+    	    		if(value!=null && !value.trim().equals(""))
     	    		{
-    	    			attribute.setJavaType(values[1]);
+    		    		String values[] = value.split(":");
+    		    		if(values.length>0)
+    		    		{
+    		    			for(int k=0;k<values.length;k++)
+    		    			{
+    		    				if(values[k].equals(MetadataAttributeValue.TYPE_INT.key())||values[k].equals(MetadataAttributeValue.TYPE_FLOAT.key()))
+    		    				{
+    		    					attribute.setJavaType(values[k]);
+    		    				}
+    		    				else
+    		    				{
+    		    					attribute.setValue(values[k]);
+    		    				}
+    		    			}
+    		    		}
     	    		}
-    	    		attribute.setValue(values[0]);
     	    	}
     		}
     	}
@@ -298,7 +360,7 @@ public class NodesCollector
 		        if(keys.size()>0)
 		        {
 		        	collectAttributeValues(relation);
-		        	NodeToCsvMapper.mapColumnsToAttributes(relation,header);
+		        	requiredColumns = NodeToCsvMapper.mapAttributesToColumns(relation,header,requiredColumns);
 		        }
 		    	
 		    	relations.addRelation(relation);
@@ -306,5 +368,20 @@ public class NodesCollector
 		    	
 			}
 		}
+	}
+
+	public HashSet<Integer> getRequiredColumns()
+	{
+		return requiredColumns;
+	}
+
+	public NodesCollection getNodes()
+	{
+		return nodes;
+	}
+
+	public RelationsCollection getRelations()
+	{
+		return relations;
 	}
 }

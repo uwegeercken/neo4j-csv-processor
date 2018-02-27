@@ -1,13 +1,12 @@
 package com.datamelt.neo4j.csv;
 
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class NodeToCsvMapper
 {
-	public static void mapColumnsToAttributes(Node node, CsvHeader header)
+	public static HashSet<Integer> mapAttributesToColumns(Node node, CsvHeader header, HashSet<Integer> requiredColumns)
 	{
-		String idFieldKey = node.getIdFieldKey();
-		
 		HashMap<Integer,Integer> map = new HashMap<>(header.getPositions().size());
 		for(int f=0;f<node.getAttributes().size();f++)
 		{
@@ -16,16 +15,18 @@ public class NodeToCsvMapper
 			{
 				int position = header.getPositions().get(attribute.getValue());
    				map.put(f, position);
-   				if(attribute.getValue().equals(idFieldKey))
+   				requiredColumns.add(position);
+   				if(attribute.isIdField())
    				{
    					node.setKeyAttributeIndex(position);
    				}
 			}
 		}
 		node.setAttributesToCsvColumnMap(map);
+		return requiredColumns;
 	}
 	
-	public static void mapColumnsToAttributes(Relation relation, CsvHeader header)
+	public static HashSet<Integer> mapAttributesToColumns(Relation relation, CsvHeader header, HashSet<Integer> requiredColumns)
 	{
 		HashMap<Integer,Integer> map = new HashMap<>(header.getPositions().size());
 		for(int f=0;f<relation.getAttributes().size();f++)
@@ -35,8 +36,10 @@ public class NodeToCsvMapper
 			{
 				int position = header.getPositions().get(attribute.getValue());
    				map.put(f, position);
+   				requiredColumns.add(position);
 			}
 		}
 		relation.setAttributesToCsvColumnMap(map);
+		return requiredColumns;
 	}
 }

@@ -7,7 +7,7 @@
 # of the the nodes and relations should be mapped to which CSV columns.
 #
 #
-# last update uwe geercken, 2018-02-14
+# last update uwe geercken, 2018-02-27
 #
 
 ## required libraries to run the process
@@ -18,12 +18,13 @@ csv_processor_jar=neo4j_csv_processor-0.2.0.jar
 ## all arguments except "delimiter" are mandatory
 hostname="localhost"
 username="neo4j"
-password="secretpassword"
-output_folder="/home/uwe/development/neo4j/epx"
-csv_filename="/home/uwe/development/data/epx_201801_bzbi_neo4j.csv"
+password="fasthans"
+output_folder="/opt/neo4j-community-3.3.2/import/epx"
+csv_filename="/opt/neo4j-community-3.3.2/import/epx/epx_201801_neo4j.csv"
 delimiter=";"
+metalabel="Meta"
 
 
 # run the program
-java -cp ${neo4j_jdbc_driver_jar}:${csv_processor_jar} com.datamelt.neo4j.csv.processor.NodeToCsvProcessor -h="${hostname}" -u="${username}" -p="${password}" -o="${output_folder}" -c="${csv_filename}" -d="${delimiter}"
+java -cp ${neo4j_jdbc_driver_jar}:${csv_processor_jar} com.datamelt.neo4j.csv.processor.NodeToCsvProcessor -h="${hostname}" -u="${username}" -p="${password}" -o="${output_folder}" -c="${csv_filename}" -d="${delimiter}" -l="${metalabel}"
 

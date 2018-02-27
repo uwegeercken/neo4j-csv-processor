@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map.Entry;
 
-import com.datamelt.util.FileUtility;
 import com.datamelt.util.MessageUtility;
 
 public class NodeFileCollection
@@ -29,11 +28,17 @@ public class NodeFileCollection
 		for(int i=0;i<nodes.size();i++)
 		{
 			Node node = nodes.getNode(i);
-			String idFieldName = node.getIdFieldKey();
-			Attribute attribute = node.getAttributes().getAttributeByValue(idFieldName);
+			Attribute attribute = node.getAttributes().getIdAttribute();
 
-			NodeFile file = new NodeFile(node.getLabel(),attribute.getKey(),node.getAttributes().getAttributes(),node.getMetadataAttributes().getAttributes());
-			nodeFiles.add(file);
+			if(attribute!=null)
+			{
+				NodeFile file = new NodeFile(node.getLabel(),node.getNamespace(), attribute.getKey(),node.getAttributes().getAttributes(),node.getMetadataAttributes().getAttributes());
+				nodeFiles.add(file);
+			}
+			else
+			{
+				System.out.println(MessageUtility.getFormattedMessage("node has no ID field definied: " + node.getLabel()));
+			}
 		}
 	}
 	
@@ -90,31 +95,5 @@ public class NodeFileCollection
 	        printWriter.close();
 	        fileWriter.close();
 	    }
-	}
-	
-	public static void writeOriginalSchemaFile(String outputFolder, String fileName, ArrayList<String> createNodesStatements, ArrayList<String> createRelationsStatements) throws Exception
-	{
-		File folder = new File(outputFolder);
-	    folder.mkdirs();
-	    
-    	String fullFileName = outputFolder + "/" + fileName; 
-    	System.out.println(MessageUtility.getFormattedMessage("writing file for original schema: " + fileName));
-    	
-    	FileUtility.backupFile(outputFolder, fileName);
-    	
-    	FileWriter fileWriter = new FileWriter(fullFileName);
-        PrintWriter printWriter = new PrintWriter(fileWriter);
-        for(int i=0;i<createNodesStatements.size();i++)
-        {
-        	printWriter.println(createNodesStatements.get(i));
-        }
-        for(int i=0;i<createRelationsStatements.size();i++)
-        {
-        	printWriter.println(createRelationsStatements.get(i));
-        }
-
-        printWriter.flush();
-        printWriter.close();
-        fileWriter.close();
 	}
 }

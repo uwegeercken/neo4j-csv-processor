@@ -23,8 +23,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import org.neo4j.driver.v1.AuthTokens;
 import org.neo4j.driver.v1.Driver;
@@ -39,8 +40,8 @@ public class NodeToCsvProcessor
 {
 	// the version of the business rule engine
 	private static final String VERSION = "0.2";
-	private static final String REVISION = "2";
-	private static final String LAST_UPDATE = "2018-02-17";
+	private static final String REVISION = "4";
+	private static final String LAST_UPDATE = "2018-02-27";
 	
 	private static String hostname;
 	private static String username;
@@ -48,10 +49,12 @@ public class NodeToCsvProcessor
 	private static String outputFolder;
 	private static String csvFilename;
 	private static String delimiter = ";";
+	private static String metaLabel = "Meta";
+	private static Session session = null;
     
 	public static void main(String[] args) throws Exception
 	{
-		if (args.length==0 || args.length<5 || args.length>6)
+		if (args.length==0 || args.length<5 || args.length>7)
         {
         	help();
         }
@@ -82,6 +85,10 @@ public class NodeToCsvProcessor
 	    		else if (args[i].startsWith("-d="))
 	    		{
 	    			delimiter = args[i].substring(3);
+	    		}
+	    		else if (args[i].startsWith("-l="))
+	    		{
+	    			metaLabel = args[i].substring(3);
 	    		}
 	    	}
         	
@@ -121,9 +128,12 @@ public class NodeToCsvProcessor
     				error = true;
     			}
     		}
-    		if(!checkDatabaseAccess())
+    		
+    		getSession();
+    		
+    		if(session==null)
     		{
-    			System.out.println("error - can not access neo4j host. check if the host is available and credentials are correct.");
+    			System.out.println("error - accessing neo4j host. check if the host is available and credentials are correct.");
     			error = true;
     		}
     		
@@ -148,17 +158,15 @@ public class NodeToCsvProcessor
 	    		    	header = new CsvHeader(headerLine, delimiter);
 	    		    }
 	    		
-		    		NodesCollector collector = new NodesCollector(hostname,username,password, outputFolder,header);
+		    		NodesCollector collector = new NodesCollector(session, outputFolder,metaLabel,header);
+		    		HashSet<Integer> requiredColumns = collector.getRequiredColumns();
 		    		
 		    		System.out.println(MessageUtility.getFormattedMessage("number of nodes found: " + collector.getNumberOfNodes()));
 		    		System.out.println(MessageUtility.getFormattedMessage("number of relations found: " + collector.getNumberOfRelations()));
 		    		
 		    		if(collector.getNumberOfNodes()>0)
 		    		{
-		    		
-		    		
-		    		
-		    		collector.writeSchemaAsCypherStatement();
+		    			collector.writeSchemaAsCypherStatement();
 		    		
 		    		    System.out.println(MessageUtility.getFormattedMessage("processing CSV file: " + csvFilename));
 		    		    long filesize =csvFile.length();
@@ -178,32 +186,37 @@ public class NodeToCsvProcessor
 		    		    	}
 		    		    	int startPosition=0;
 		    		    	int position=-1;
-		    		    	ArrayList<String> columns = new ArrayList<>();
+		    		    	int columnCounter=-1;
+		    		    	HashMap<Integer,String> columns = new HashMap<>();
 		    		    	do
 		    		    	{
 		    		    		position = line.indexOf(delimiter,startPosition);
+		    		    		columnCounter++;
 		    		    		if(position>-1)
 		    		    		{
-		    		    			columns.add(line.substring(startPosition, position));
+		    		    			if(requiredColumns.contains(columnCounter))
+		    		    			{
+		    		    				String value = line.substring(startPosition, position);
+		    		    				columns.put(columnCounter,value);
+		    		    			}
 		    		    			startPosition = position+1;
 		    		    		}
 		    		    		else
 		    		    		{
-		    		    			if(line.substring(startPosition)!=null)
+		    		    			String value = line.substring(startPosition);
+		    		    			if(value!=null && requiredColumns.contains(columnCounter))
 		    		    			{
-		    		    				columns.add(line.substring(startPosition));
+		    		    				columns.put(columnCounter,value);
 		    		    			}
 		    		    		}
 		    		    	} while (position>=0);
 		    		    	
+		    		    	//collector.processKeys(columns,lineCounter);
 		    		    	collector.processLine(columns,lineCounter);
 		    	        }
-		    		    System.out.println(MessageUtility.getFormattedMessage("processed rows: " + lineCounter));
+		    		    System.out.println(MessageUtility.getFormattedMessage("processed rows (incl. header): " + lineCounter));
 		    		    
-		    		    System.out.println(MessageUtility.getFormattedMessage("writing CSV files for nodes..."));
 			    	    collector.writeNodeFiles(delimiter);
-			    	    
-			    	    System.out.println(MessageUtility.getFormattedMessage("writing CSV files for relations..."));
 			    	    collector.writeRelationFiles(delimiter);
 		    		}
 		    		else
@@ -227,22 +240,17 @@ public class NodeToCsvProcessor
         }
 	}
 	
-	private static boolean checkDatabaseAccess()
+	private static void getSession()
 	{
-		boolean accessOk = false;
 		try
 		{
 			Driver driver = GraphDatabase.driver(NodesCollector.DEFAULT_PROTOCOL +"://" + hostname, AuthTokens.basic(username,password));
-			Session session = driver.session();
-			session.close();
-			accessOk = true;
+			session = driver.session();
 		}
 		catch(Exception ex)
 		{
 			ex.printStackTrace();
 		}
-		return accessOk;
-
 	}
 	
 	private static boolean checkCsvFileAccessible(String filename)
@@ -282,15 +290,16 @@ public class NodeToCsvProcessor
     	System.out.println();
     	System.out.println("For further functionality consult the API documentation and the handbook.");
     	System.out.println();
-    	System.out.println("NodeToCsvProcessor -h=[hostname]|-u=[username] -p=[password] -o= [outputfolder] -c=[csv file name] -d=[delimiter]");
+    	System.out.println("NodeToCsvProcessor -h=[hostname]|-u=[username] -p=[password] -o= [outputfolder] -c=[csv file name] -d=[delimiter] -l=[metalabel]");
     	System.out.println("where [hostname]     : required. hostname or IP of the neo4j server.");
     	System.out.println("      [username]     : required. the name of the neo4j user.");
     	System.out.println("      [password]     : required. password of the neo4j user.");
     	System.out.println("      [outputfolder] : required. path of the folder where to generate the files.");
     	System.out.println("      [csv file name]: required. name of the csv file - containing the data - to use");
-    	System.out.println("      [delimiter]    : optional. default:\";\".field delimiter to use for the generates files");
+    	System.out.println("      [delimiter]    : optional. default:\";\". field delimiter to use for the generates files");
+    	System.out.println("      [metalabel]    : optional. default:\"Meta\". the name of the label used as metadata. only nodes with this label are processed.");
     	System.out.println();
-    	System.out.println("example: NodeToCsvProcessor -h=localhost -u=user1 -p=mypassword -o=/home/user1 -c=/home/user1/testfile.csv -d=;");
+    	System.out.println("example: NodeToCsvProcessor -h=localhost -u=user1 -p=mypassword -o=/home/user1 -c=/home/user1/testfile.csv -d=; -l=Meta");
     	System.out.println();
     	System.out.println("published as open source under the Apache License. read the licence notice");
     	System.out.println("all code by uwe geercken, 2018. uwe.geercken@web.de");

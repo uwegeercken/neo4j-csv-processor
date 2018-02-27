@@ -14,14 +14,18 @@ public class RelationFile
 	
 	private String relationType;
 	private String startNodeLabel;
+	private String startNodeNamespace;
 	private String endNodeLabel;
+	private String endNodeNamespace;
 	private ArrayList<Attribute> metadataAttributes;
 	private ArrayList<Attribute> attributes;
 	private HashMap<String,RelationFileValue> values = new HashMap<>(1000);
-	public RelationFile(String startNodeLabel, String endNodeLabel, String relationType, ArrayList<Attribute> attributes, ArrayList<Attribute> metadataAttributes)
+	public RelationFile(String startNodeLabel, String startNodeNamespace, String endNodeLabel, String endNodeNamespace, String relationType, ArrayList<Attribute> attributes, ArrayList<Attribute> metadataAttributes)
 	{
 		this.startNodeLabel = startNodeLabel;
+		this.startNodeNamespace = startNodeNamespace;
 		this.endNodeLabel = endNodeLabel;
+		this.endNodeNamespace = endNodeNamespace;
 		this.relationType = relationType;
 		this.attributes = attributes;
 		this.metadataAttributes = metadataAttributes;
@@ -41,6 +45,10 @@ public class RelationFile
 	{
 		StringBuffer buffer = new StringBuffer();
 		buffer.append(START_ID);
+		if(startNodeNamespace!=null)
+		{
+			buffer.append("(").append(startNodeNamespace).append(")");
+		}
 		buffer.append(delimiter);
 		for(int i=0;i<attributes.size();i++)
 		{
@@ -53,7 +61,12 @@ public class RelationFile
 			}
 			buffer.append(delimiter);
 		}
-		buffer.append(END_ID + delimiter + TYPE);
+		buffer.append(END_ID); 
+		if(endNodeNamespace!=null)
+		{
+			buffer.append("(").append(endNodeNamespace).append(")");
+		}
+		buffer.append(delimiter + TYPE);
 		return buffer.toString();
 	}
 

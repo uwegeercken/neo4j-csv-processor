@@ -49,7 +49,7 @@ public class RelationFileCollection
 		for(int i=0;i<relations.size();i++)
 		{
 			Relation relation = relations.getRelation(i);
-			RelationFile file = new RelationFile(relation.getStartNode().getLabel(),relation.getEndNode().getLabel(),relation.getRelationType(),relation.getAttributes().getAttributes(),relation.getMetadataAttributes().getAttributes());
+			RelationFile file = new RelationFile(relation.getStartNode().getLabel(),relation.getStartNode().getNamespace(),relation.getEndNode().getLabel(),relation.getEndNode().getNamespace(), relation.getRelationType(),relation.getAttributes().getAttributes(),relation.getMetadataAttributes().getAttributes());
 			relationFiles.add(file);
 		}
 	}

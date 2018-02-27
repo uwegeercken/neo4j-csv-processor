@@ -2,8 +2,6 @@ package com.datamelt.neo4j.csv;
 
 import java.util.ArrayList;
 
-import com.datamelt.neo4j.csv.util.MetadataAttribute;
-
 public class Attributes
 {
 	private ArrayList<Attribute> attributes = new ArrayList<Attribute>();
@@ -21,12 +19,25 @@ public class Attributes
 		return attribute;
 	}
 	
+	public Attribute getIdAttribute()
+	{
+		Attribute attribute = null;
+		for(int i=0;i<attributes.size();i++)
+		{
+			if(attributes.get(i).isIdField())
+			{
+				attribute = attributes.get(i);
+			}
+		}
+		return attribute;
+	}
+	
 	public Attribute getAttributeByValue(String value)
 	{
 		Attribute attribute = null;
 		for(int i=0;i<attributes.size();i++)
 		{
-			if(!attributes.get(i).getKey().equals(MetadataAttribute.ID_FIELD.key()) &&attributes.get(i).getValue().equals(value))
+			if(attributes.get(i).getValue().equals(value))
 			{
 				attribute = attributes.get(i);
 			}
@@ -43,6 +54,17 @@ public class Attributes
 			attributeKeys.add(attribute.getKey());
 		}
 		return attributeKeys;
+	}
+	
+	public ArrayList<String> getAttributeValues()
+	{
+		ArrayList<String> attributeValues = new ArrayList<>();
+		for(int i=0;i<attributes.size();i++)
+		{
+			Attribute attribute = attributes.get(i);
+			attributeValues.add(attribute.getValue());
+		}
+		return attributeValues;
 	}
 	
 	public ArrayList<Attribute> getAttributes()

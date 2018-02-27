@@ -1,12 +1,12 @@
 package com.datamelt.neo4j.csv.util;
 
-public enum MetadataAttribute
+public enum MetadataAttributeValue
 {
-	NAMESPACE("namespace");
+	ID("ID"), TYPE_INT("int"), TYPE_FLOAT("float");
 	
 	private String key;
 	
-	MetadataAttribute(String key)
+	MetadataAttributeValue(String key)
 	{
 		this.key = key;
 	}
