@@ -18,7 +18,7 @@ csv_processor_jar=neo4j_csv_processor-0.2.0.jar
 ## all arguments except "delimiter" are mandatory
 hostname="localhost"
 username="neo4j"
-password="fasthans"
+password="xxxxxxx"
 output_folder="/opt/neo4j-community-3.3.2/import/epx"
 csv_filename="/opt/neo4j-community-3.3.2/import/epx/epx_201801_neo4j.csv"
 delimiter=";"
